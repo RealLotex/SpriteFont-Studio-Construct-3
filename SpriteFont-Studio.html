@@ -134,15 +134,18 @@ header .mark{flex:none}
     <div class="section divided">
       <label><span data-t="advance">Advance</span><select id="spacing">
         <option value="fixed" data-t="fixed">Fixed · monospace</option>
-        <option value="auto" data-t="proportional">Proportional · based on glyph</option>
+        <option value="auto" selected data-t="proportional">Proportional · based on glyph</option>
       </select></label>
-      <div class="two" id="autoSettings" hidden>
+      <div class="two" id="autoSettings">
         <label><span data-t="gap">Right gap (px)</span><input id="gap" type="number" min="0" max="512" value="1"></label>
-        <label><span data-t="spaceWidth">Space width (px)</span><input id="space" type="number" min="1" max="512" value="8"></label>
+        <label><span data-t="spaceWidth">Space width (px)</span><input id="space" type="number" min="1" max="512" value="3"></label>
       </div>
     </div>
     <div class="section divided" aria-labelledby="styleTitle">
       <h3 id="styleTitle" data-t="style">Style</h3>
+      <label><span data-t="stylePreset">Style preset</span><select id="stylePreset">
+        <option value="" data-t="customStyle" disabled>Custom style</option>
+      </select></label>
       <div class="paint section" id="fillPaint"></div>
       <details class="effect" id="outlinePanel">
         <summary data-t="outline">Outline</summary>
@@ -171,7 +174,7 @@ header .mark{flex:none}
 <section class="card" aria-labelledby="workTitle">
   <div class="cardHead"><h2 id="workTitle" data-t="preview">Preview</h2><span class="meta" id="atlasMeta"></span></div>
   <div class="body">
-    <details id="editorPanel" class="section" open>
+    <details id="editorPanel" class="section">
       <summary id="editorTitle" data-t="editor">Pixel editor</summary>
       <div id="drawSettings" class="section editorBody" aria-labelledby="editorTitle">
         <div class="two">
@@ -256,7 +259,7 @@ const sampleContext = sampleCanvas.getContext('2d');
 const glyphSurface = document.createElement('canvas');
 const glyphContext = glyphSurface.getContext('2d', {willReadFrequently: true});
 const initialSettings = {
-  width: 16, height: 16, columns: 8, minFontSize: 1, fontSize: 16, offset: 0, gap: 1, space: 8,
+  width: 16, height: 16, columns: 8, minFontSize: 1, fontSize: 16, offset: 0, gap: 1, space: 3,
   outlineSize: 1, shadowX: 2, shadowY: 2, shadowBlur: 0, shadowOpacity: 60,
 };
 const paints = [
@@ -317,6 +320,49 @@ let importRequest = 0;
 byId('charset').value = EXAMPLE;
 const fieldValue = id => byId(id).type === 'checkbox' ? byId(id).checked : byId(id).value;
 const fieldDefaults = Object.fromEntries(projectFields.map(id => [id, fieldValue(id)]));
+const styleFieldIds = [
+  'outlineOn', 'outlineSize', 'shadowOn', 'shadowX', 'shadowY', 'shadowBlur', 'shadowOpacity',
+  ...paints.flatMap(({id}) => ['Color', 'Gradient', 'End', 'Angle'].map(suffix => id + suffix)),
+];
+const styleDefaults = Object.fromEntries(styleFieldIds.map(id => [id, fieldDefaults[id]]));
+const stylePresets = [
+  {id: 'classic', name: ['Classic', 'Clásico'], fill: ['#ffffff']},
+  {id: 'ink', name: ['Ink', 'Tinta'], fill: ['#211c32'], outline: {paint: ['#f6ead3']}},
+  {id: 'handheld', name: ['Handheld', 'Consola portátil'], fill: ['#d4ec9b', '#83ad55'],
+    outline: {paint: ['#284935']}, shadow: {paint: ['#142c23'], x: 1, y: 2, opacity: 85}},
+  {id: 'arcade', name: ['Arcade', 'Arcade'], fill: ['#fff277', '#ff842d'],
+    outline: {paint: ['#341642'], size: 2}, shadow: {paint: ['#150d26'], x: 2, y: 3}},
+  {id: 'sunset', name: ['Sunset', 'Atardecer'], fill: ['#ffde92', '#f35a89', 65],
+    outline: {paint: ['#84325f', '#482449']}, shadow: {paint: ['#3d204a'], x: 2, y: 3, blur: 2}},
+  {id: 'ice', name: ['Ice', 'Hielo'], fill: ['#f5ffff', '#54c5ff'],
+    outline: {paint: ['#286aab', '#18294b']}, shadow: {paint: ['#379fe3'], x: 1, y: 2, blur: 3}},
+  {id: 'ember', name: ['Ember', 'Brasa'], fill: ['#fff3a9', '#f1482f'],
+    outline: {paint: ['#9e391c', '#4b1424'], size: 2}, shadow: {paint: ['#7d1c12'], x: 0, y: 2, blur: 2}},
+  {id: 'forest', name: ['Forest', 'Bosque'], fill: ['#e5f3a4', '#6bb975', 120],
+    outline: {paint: ['#214e40']}, shadow: {paint: ['#132c28'], x: 2, y: 3, opacity: 80}},
+  {id: 'deep-sea', name: ['Deep sea', 'Mar profundo'], fill: ['#b8f9ed', '#2b9cda', 125],
+    outline: {paint: ['#2b607c', '#16274f']}, shadow: {paint: ['#0d2342', '#185572', 60], x: 2, y: 3, blur: 2}},
+  {id: 'gold', name: ['Gold', 'Oro'], fill: ['#fff1b2', '#ce8c29'],
+    outline: {paint: ['#87501d', '#4f2a22']}, shadow: {paint: ['#432c20'], x: 2, y: 2, opacity: 75}},
+  {id: 'silver', name: ['Silver', 'Plata'], fill: ['#ffffff', '#8d9bbc'],
+    outline: {paint: ['#536480', '#30384f']}, shadow: {paint: ['#161c2b'], x: 2, y: 2, blur: 1}},
+  {id: 'candy', name: ['Candy', 'Caramelo'], fill: ['#fff0f6', '#ff86b8'],
+    outline: {paint: ['#bf4688']}, shadow: {paint: ['#723ba5', '#e65b9e'], x: 2, y: 3}},
+  {id: 'neon', name: ['Neon', 'Neón'], fill: ['#f5ffd2', '#a9f443'],
+    outline: {paint: ['#447a4b']}, shadow: {paint: ['#4dd66b'], x: 0, y: 0, blur: 4, opacity: 90}},
+  {id: 'synthwave', name: ['Synthwave', 'Synthwave'], fill: ['#ff9be0', '#8475ff'],
+    outline: {paint: ['#702aa7', '#332461'], size: 2},
+    shadow: {paint: ['#5de9f4', '#843dff', 25], x: 2, y: 3, opacity: 90}},
+  {id: 'violet', name: ['Violet', 'Violeta'], fill: ['#f4e8ff', '#b18dff', 135],
+    outline: {paint: ['#5d428e']}, shadow: {paint: ['#472263'], x: 2, y: 2, blur: 1}},
+  {id: 'stone', name: ['Stone', 'Piedra'], fill: ['#dfd7c8', '#8b7c70', 110],
+    outline: {paint: ['#3e3839']}, shadow: {paint: ['#211e20'], x: 2, y: 3}},
+];
+const presetMenu = byId('stylePreset');
+const presetFields = new Map(stylePresets.map(preset => {
+  presetMenu.add(new Option(preset.name[0], preset.id));
+  return [preset.id, styleValues(preset)];
+}));
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const supportedChar = char => typeof char === 'string' && char.length === 1 && !/[\p{Cc}\p{Cf}\p{Cs}\p{Zl}\p{Zp}]/u.test(char);
 const editLayer = () => {
@@ -324,6 +370,34 @@ const editLayer = () => {
   if (!fontLayers.has(activeFont.id)) fontLayers.set(activeFont.id, new Map());
   return fontLayers.get(activeFont.id);
 };
+
+function styleValues(preset) {
+  const fields = {...styleDefaults};
+  const usePaint = (id, [start, end, angle = 90]) => {
+    fields[id + 'Color'] = start;
+    if (end) {
+      fields[id + 'Gradient'] = true;
+      fields[id + 'End'] = end;
+      fields[id + 'Angle'] = String(angle);
+    }
+  };
+  usePaint('fill', preset.fill);
+  if (preset.outline) {
+    fields.outlineOn = true;
+    fields.outlineSize = String(preset.outline.size ?? 1);
+    usePaint('outline', preset.outline.paint);
+  }
+  if (preset.shadow) {
+    const {paint, x, y, blur = 0, opacity = 60} = preset.shadow;
+    fields.shadowOn = true;
+    fields.shadowX = String(x);
+    fields.shadowY = String(y);
+    fields.shadowBlur = String(blur);
+    fields.shadowOpacity = String(opacity);
+    usePaint('shadow', paint);
+  }
+  return fields;
+}
 
 function integerInput(id) {
   const input = byId(id);
@@ -365,6 +439,8 @@ function updateChrome() {
   byId('drawMode').setAttribute('aria-pressed', String(mode === 'draw'));
   byId('autoSettings').hidden = fieldValue('spacing') !== 'auto';
   for (const {id} of paints) byId(id + 'GradientFields').hidden = !fieldValue(id + 'Gradient');
+  presetMenu.value = stylePresets.find(({id}) =>
+    Object.entries(presetFields.get(id)).every(([field, value]) => fieldValue(field) === value))?.id ?? '';
 }
 
 function scheduleBuild() {
@@ -881,11 +957,11 @@ function finishStroke(event) {
 }
 
 function changeMode(next) {
+  if (next === 'draw') byId('editorPanel').open = true;
   if (mode === next) return;
   finishStroke();
   mode = next;
   history.length = 0;
-  if (next === 'draw') byId('editorPanel').open = true;
   status();
   markChanged();
   scheduleBuild();
@@ -1088,7 +1164,7 @@ function readFont(snapshot) {
 }
 
 function legacyFields(values) {
-  const fields = {...fieldDefaults, sample: defaultSample ?? t('exampleSample')};
+  const fields = {...fieldDefaults, spacing: 'fixed', space: '8', sample: defaultSample ?? t('exampleSample')};
   for (const [id, value] of Object.entries(values ?? {})) {
     const migrated = id === 'ink' ? 'fillColor' : id;
     if (!Object.hasOwn(fields, migrated) || typeof value !== typeof fields[migrated]) continue;
@@ -1213,7 +1289,6 @@ function applyProject(project, localSource) {
   mode = project.mode;
   selectedGlyph = project.selectedGlyph;
   keyboardCursor = {x: 0, y: 0};
-  byId('editorPanel').open = true;
   byId('outlinePanel').open = fieldValue('outlineOn');
   byId('shadowPanel').open = fieldValue('shadowOn');
   setHint(activeFont.snapshot ? 'snapshotHelp' : 'fontHelp');
@@ -1451,6 +1526,8 @@ const translations = {
   gap: ['Right gap (px)', 'Margen derecho (px)'],
   spaceWidth: ['Space width (px)', 'Ancho del espacio (px)'],
   style: ['Style', 'Estilo'],
+  stylePreset: ['Style preset', 'Preset de estilo'],
+  customStyle: ['Custom style', 'Estilo personalizado'],
   fill: ['Fill color', 'Color de relleno'],
   outline: ['Outline', 'Contorno'],
   enableOutline: ['Enable outline', 'Activar contorno'],
@@ -1554,6 +1631,9 @@ function localize() {
   for (const node of document.querySelectorAll('[data-t]')) node.textContent = t(node.dataset.t);
   for (const node of document.querySelectorAll('[data-a]')) node.setAttribute('aria-label', t(node.dataset.a));
   for (const node of document.querySelectorAll('[data-p]')) node.placeholder = t(node.dataset.p);
+  stylePresets.forEach(({name}, index) => {
+    presetMenu.options[index + 1].textContent = name[language === 'es' ? 1 : 0];
+  });
   if (fieldValue('sample') === defaultSample) {
     defaultSample = t('exampleSample');
     byId('sample').value = defaultSample;
@@ -1572,6 +1652,13 @@ byId('language').onchange = () => {
 window.addEventListener('languagechange', localize);
 byId('fontMode').onclick = () => changeMode('font');
 byId('drawMode').onclick = () => changeMode('draw');
+presetMenu.onchange = () => {
+  const fields = presetFields.get(presetMenu.value);
+  if (!fields) return;
+  for (const [id, value] of Object.entries(fields)) setField(id, value);
+  markChanged();
+  scheduleBuild();
+};
 byId('scan').onclick = scanFonts;
 byId('fonts').onchange = event => activateFont(event.target.value);
 byId('openFont').onclick = () => byId('fontFile').click();
