@@ -2,7 +2,7 @@
 
 Browser-based sprite font generator and pixel editor for Construct 3.
 
-[Open SpriteFont Studio](https://spritefont-studio.rosichmarcos.chatgpt.site)
+[Open SpriteFont Studio](https://reallotex.github.io/SpriteFont-Studio-Construct-3/)
 
 1. Generate glyphs from an installed font or a TTF, OTF, WOFF or WOFF2 file, or start in **Draw** mode. The pixel editor lets you paint, erase, undo and restore generated glyphs. Desktop Chrome or Edge can list installed fonts with browser permission.
 2. Set the cell size and character set. A blank maximum font size uses the cell height. The minimum font size can be set up to 512 px, and cells expand when needed to fit it. An atlas can contain up to 512 characters and measure up to 4096 px on each side.

@@ -1,6 +1,6 @@
 SPRITEFONT STUDIO · Windows
 
-Sitio público: https://spritefont-studio.rosichmarcos.chatgpt.site
+Sitio público: https://reallotex.github.io/SpriteFont-Studio-Construct-3/
 
 1. Ejecutá Abrir-en-Windows.cmd y dejá abierta la consola mientras trabajás.
    Si el navegador no se abre, visitá http://127.0.0.1:47831/ en Edge o
