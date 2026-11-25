@@ -17,6 +17,11 @@ h2{font-size:16px;letter-spacing:-.01em}
 h3{font-size:13px}
 header p,.muted,small{color:var(--muted)}
 header p{margin-top:4px}
+.presetBar{display:grid;gap:7px;margin-bottom:16px;padding:12px 15px 10px}
+.presetRail{display:flex;gap:7px;overflow-x:auto;padding:3px 3px 5px;scrollbar-width:thin}
+.presetTile{display:grid;place-items:center;flex:0 0 64px;width:64px;height:64px;padding:2px;background:var(--field)}
+.presetTile[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.presetTile canvas{width:100%;height:auto}
 .layout{display:grid;grid-template-columns:minmax(255px,.95fr) minmax(330px,1.65fr) minmax(238px,.92fr);gap:16px;align-items:start}
 .card{min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden}
 .cardHead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 16px;border-bottom:1px solid var(--line)}
@@ -89,6 +94,10 @@ header .mark{flex:none}
     <option value="auto" data-t="browserLanguage">Browser default</option><option value="en">English</option><option value="es">Español</option>
   </select></label>
 </header>
+<section class="card presetBar" aria-labelledby="presetsTitle">
+  <h2 id="presetsTitle" data-t="stylePresets">Style presets</h2>
+  <div class="presetRail" id="stylePresets" role="group" aria-labelledby="presetsTitle"></div>
+</section>
 <div class="layout">
 <section class="card" aria-labelledby="configTitle">
   <div class="cardHead"><h2 id="configTitle" data-t="settings">Settings</h2></div>
@@ -143,9 +152,6 @@ header .mark{flex:none}
     </div>
     <div class="section divided" aria-labelledby="styleTitle">
       <h3 id="styleTitle" data-t="style">Style</h3>
-      <label><span data-t="stylePreset">Style preset</span><select id="stylePreset">
-        <option value="" data-t="customStyle" disabled>Custom style</option>
-      </select></label>
       <div class="paint section" id="fillPaint"></div>
       <details class="effect" id="outlinePanel">
         <summary data-t="outline">Outline</summary>
@@ -358,11 +364,8 @@ const stylePresets = [
   {id: 'stone', name: ['Stone', 'Piedra'], fill: ['#dfd7c8', '#8b7c70', 110],
     outline: {paint: ['#3e3839']}, shadow: {paint: ['#211e20'], x: 2, y: 3}},
 ];
-const presetMenu = byId('stylePreset');
-const presetFields = new Map(stylePresets.map(preset => {
-  presetMenu.add(new Option(preset.name[0], preset.id));
-  return [preset.id, styleValues(preset)];
-}));
+const presetFields = new Map(stylePresets.map(preset => [preset.id, styleValues(preset)]));
+const presetButtons = new Map();
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const supportedChar = char => typeof char === 'string' && char.length === 1 && !/[\p{Cc}\p{Cf}\p{Cs}\p{Zl}\p{Zp}]/u.test(char);
 const editLayer = () => {
@@ -404,20 +407,28 @@ function integerInput(id) {
   return input.value === '' ? initialSettings[id] : clamp(Math.round(Number(input.value)), Number(input.min), Number(input.max));
 }
 
+function readStyle(get) {
+  const colors = Object.fromEntries(paints.map(({id}) => [id, {
+    start: get(id + 'Color'), end: get(id + 'End'),
+    gradient: get(id + 'Gradient'), angle: Number(get(id + 'Angle')),
+  }]));
+  const shadowOpacity = Number(get('shadowOpacity'));
+  return {
+    colors, outline: get('outlineOn') ? Number(get('outlineSize')) : 0,
+    shadow: get('shadowOn') && shadowOpacity > 0,
+    shadowOpacity, shadowX: Number(get('shadowX')), shadowY: Number(get('shadowY')), shadowBlur: Number(get('shadowBlur')),
+  };
+}
+
 function readSettings() {
   const numeric = Object.fromEntries(Object.keys(initialSettings).map(id => [id, integerInput(id)]));
   if (!fieldValue('fontSize')) numeric.fontSize = numeric.height;
   const raw = byId('charset').value;
   const characters = [...new Set(Array.from(raw.normalize('NFC')).filter(supportedChar))];
-  const colors = Object.fromEntries(paints.map(({id}) => [id, {
-    start: fieldValue(id + 'Color'), end: fieldValue(id + 'End'),
-    gradient: fieldValue(id + 'Gradient'), angle: numeric[id + 'Angle'],
-  }]));
   return {
     ...numeric, characters, charset: characters.join(''), normalized: raw !== characters.join(''),
-    proportional: fieldValue('spacing') === 'auto', hard: fieldValue('hard'), colors,
-    outline: fieldValue('outlineOn') ? numeric.outlineSize : 0,
-    shadow: fieldValue('shadowOn') && numeric.shadowOpacity > 0,
+    proportional: fieldValue('spacing') === 'auto', hard: fieldValue('hard'),
+    ...readStyle(id => numeric[id] ?? fieldValue(id)),
   };
 }
 
@@ -439,8 +450,9 @@ function updateChrome() {
   byId('drawMode').setAttribute('aria-pressed', String(mode === 'draw'));
   byId('autoSettings').hidden = fieldValue('spacing') !== 'auto';
   for (const {id} of paints) byId(id + 'GradientFields').hidden = !fieldValue(id + 'Gradient');
-  presetMenu.value = stylePresets.find(({id}) =>
-    Object.entries(presetFields.get(id)).every(([field, value]) => fieldValue(field) === value))?.id ?? '';
+  const activePreset = stylePresets.find(({id}) =>
+    Object.entries(presetFields.get(id)).every(([field, value]) => fieldValue(field) === value));
+  for (const [id, button] of presetButtons) button.setAttribute('aria-pressed', String(id === activePreset?.id));
 }
 
 function scheduleBuild() {
@@ -650,6 +662,40 @@ function makeCell(mask, art, config, pad, width, height) {
     }
   }
   return right >= left ? {image, left, right} : null;
+}
+
+function renderPresetBar() {
+  const sample = 'Aa';
+  const {font, width, height, ascent} = measureFont(20, {characters: [sample]});
+  const art = {width, height, fit: {font, baseline: ascent, hard: true}, glyphs: new Map()};
+  rasterize(art, [sample]);
+  const mask = art.glyphs.get(sample);
+  const tiles = stylePresets.map(({id}) => {
+    const fields = presetFields.get(id);
+    const config = readStyle(field => fields[field]);
+    const pad = padding(config);
+    const cellWidth = art.width + pad.left + pad.right;
+    const cellHeight = art.height + pad.top + pad.bottom;
+    return {id, cell: makeCell(mask, art, config, pad, cellWidth, cellHeight), width: cellWidth, height: cellHeight};
+  });
+  const canvasWidth = Math.max(...tiles.map(tile => tile.width));
+  const canvasHeight = Math.max(...tiles.map(tile => tile.height));
+  const rail = byId('stylePresets');
+  for (const tile of tiles) {
+    const button = document.createElement('button');
+    button.className = 'presetTile';
+    button.type = 'button';
+    button.dataset.preset = tile.id;
+    const canvas = document.createElement('canvas');
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+    canvas.setAttribute('aria-hidden', 'true');
+    if (tile.cell) canvas.getContext('2d').putImageData(tile.cell.image,
+      Math.floor((canvasWidth - tile.width) / 2), Math.floor((canvasHeight - tile.height) / 2));
+    button.append(canvas);
+    rail.append(button);
+    presetButtons.set(tile.id, button);
+  }
 }
 
 function spacingData(widths) {
@@ -1526,8 +1572,7 @@ const translations = {
   gap: ['Right gap (px)', 'Margen derecho (px)'],
   spaceWidth: ['Space width (px)', 'Ancho del espacio (px)'],
   style: ['Style', 'Estilo'],
-  stylePreset: ['Style preset', 'Preset de estilo'],
-  customStyle: ['Custom style', 'Estilo personalizado'],
+  stylePresets: ['Style presets', 'Presets de estilo'],
   fill: ['Fill color', 'Color de relleno'],
   outline: ['Outline', 'Contorno'],
   enableOutline: ['Enable outline', 'Activar contorno'],
@@ -1631,9 +1676,11 @@ function localize() {
   for (const node of document.querySelectorAll('[data-t]')) node.textContent = t(node.dataset.t);
   for (const node of document.querySelectorAll('[data-a]')) node.setAttribute('aria-label', t(node.dataset.a));
   for (const node of document.querySelectorAll('[data-p]')) node.placeholder = t(node.dataset.p);
-  stylePresets.forEach(({name}, index) => {
-    presetMenu.options[index + 1].textContent = name[language === 'es' ? 1 : 0];
-  });
+  for (const {id, name} of stylePresets) {
+    const button = presetButtons.get(id);
+    button.title = name[language === 'es' ? 1 : 0];
+    button.setAttribute('aria-label', button.title);
+  }
   if (fieldValue('sample') === defaultSample) {
     defaultSample = t('exampleSample');
     byId('sample').value = defaultSample;
@@ -1652,8 +1699,8 @@ byId('language').onchange = () => {
 window.addEventListener('languagechange', localize);
 byId('fontMode').onclick = () => changeMode('font');
 byId('drawMode').onclick = () => changeMode('draw');
-presetMenu.onchange = () => {
-  const fields = presetFields.get(presetMenu.value);
+byId('stylePresets').onclick = event => {
+  const fields = presetFields.get(event.target.closest('button')?.dataset.preset);
   if (!fields) return;
   for (const [id, value] of Object.entries(fields)) setField(id, value);
   markChanged();
@@ -1802,6 +1849,7 @@ pixelCanvas.onkeydown = event => {
     scheduleBuild();
   }
 };
+renderPresetBar();
 localize();
 restoreBrowserProject();
 </script>
