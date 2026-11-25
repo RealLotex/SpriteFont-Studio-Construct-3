@@ -5,249 +5,692 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SpriteFont Studio</title>
 <style>
-:root{color-scheme:dark;--bg:#11111a;--panel:#1a1a26;--line:#303044;--ink:#f5f3ff;--muted:#aca9c0;--accent:#b29aff;--fill:#a78bfa;--field:#13131e;--mono:Consolas,"Liberation Mono",monospace}
-*{box-sizing:border-box}
-body{margin:0;background:radial-gradient(ellipse at 50% -320px,#332650 0,transparent 660px),var(--bg);color:var(--ink);font:14px/1.5 system-ui,sans-serif}
-main{max-width:1510px;margin:auto;padding:34px clamp(16px,4vw,58px) 42px}
-header{display:flex;gap:15px;align-items:center;margin-bottom:25px}
-.mark{display:grid;place-items:center;width:48px;height:48px;border-radius:13px;background:var(--accent);color:#231741;font:bold 20px var(--mono)}
-h1,h2,h3,p{margin:0}
-h1{font-size:clamp(24px,4vw,34px);letter-spacing:-.045em;line-height:1.15}
-h2{font-size:16px;letter-spacing:-.01em}
-h3{font-size:13px}
-header p,.muted,small{color:var(--muted)}
-header p{margin-top:4px}
-.presetBar{display:grid;gap:7px;margin-bottom:16px;padding:12px 15px 10px}
-.presetRail{display:flex;gap:7px;overflow-x:auto;padding:3px 3px 5px;scrollbar-width:thin}
-.presetTile{display:grid;place-items:center;flex:0 0 64px;width:64px;height:64px;padding:2px;background:var(--field)}
-.presetTile[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
-.presetTile canvas{width:100%;height:auto}
-.layout{display:grid;grid-template-columns:minmax(255px,.95fr) minmax(330px,1.65fr) minmax(238px,.92fr);gap:16px;align-items:start}
-.card{min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden}
-.cardHead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 16px;border-bottom:1px solid var(--line)}
-.body{padding:16px;display:grid;gap:15px}
-.section{display:grid;gap:8px}
-.divided{border-top:1px solid var(--line);padding-top:14px}
-.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.between{justify-content:space-between}
-.two,.three{display:grid;gap:8px}
-.two{grid-template-columns:repeat(2,minmax(0,1fr))}
-.three{grid-template-columns:repeat(3,minmax(0,1fr))}
-label{display:grid;gap:4px;font-weight:600;font-size:12px}
-label.check{display:flex;align-items:center;font-size:13px;gap:8px}
-button,input,select,textarea{font:inherit;color:inherit}
-button{background:#27263a;border:1px solid #3a3851;min-height:35px;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:680;cursor:pointer}
-button:hover:enabled{border-color:var(--accent)}
-button:disabled{opacity:.45;cursor:default}
-button.primary{background:var(--fill);color:#180e30;border-color:transparent}
-button[aria-pressed="true"]{background:#383052;border-color:#8974cf;color:#e2d7ff}
-button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,canvas:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-input:not([type=checkbox]):not([type=color]),select,textarea{width:100%;min-width:0;border:1px solid var(--line);background:var(--field);border-radius:8px;padding:7px 8px}
-textarea{min-height:61px;resize:vertical;font:12px/1.55 var(--mono)}
-input[type=color]{width:35px;height:30px;padding:2px;background:var(--field);border:1px solid var(--line);border-radius:6px}
-input[type=checkbox]{accent-color:var(--fill)}
-.switch{display:grid;grid-template-columns:1fr 1fr;gap:4px;border:1px solid var(--line);background:var(--field);border-radius:10px;padding:4px}
-.switch button{border-color:transparent;background:transparent;padding-inline:5px}
-.switch button[aria-pressed="true"]{background:#3a3055;border-color:#534478}
-.meta{color:#d8c9ff;font:12px var(--mono);white-space:nowrap}
-.ground{--square:#28283b;background-color:#191927;background-image:conic-gradient(var(--square) 25%,transparent 0 50%,var(--square) 0 75%,transparent 0);background-size:16px 16px;border:1px solid var(--line);border-radius:10px}
-#atlasArea{min-height:280px;max-height:500px;overflow:auto;padding:14px;display:grid;justify-content:safe center;align-content:safe center}
-canvas{image-rendering:pixelated;display:block}
-#sampleArea{max-height:300px;overflow:auto;padding:12px;min-height:62px}
-#pixelArea{display:grid;place-items:center;padding:12px;min-height:150px}
-#pixelCanvas{touch-action:none;cursor:crosshair;max-width:100%}
-#glyphs{display:grid;grid-template-columns:repeat(auto-fill,minmax(34px,1fr));gap:4px;max-height:118px;overflow:auto;padding:3px}
-#glyphs button{font:13px var(--mono);padding:3px;min-height:30px}
-#glyphs button.painted{box-shadow:inset 0 -2px #8b73d5}
-.output{display:grid;gap:5px}
-.output textarea{min-height:65px}
-.output button{min-height:29px;padding:3px 8px}
-.widths .output input{font-family:var(--mono)}
-#status{min-height:23px;font-size:12px;color:#c7b7ff}
-#status.error,#buildNote.error,#spriteFontHint.error{color:#ffadb9}
-#fontHint{display:block;min-height:18px}
-[hidden]{display:none!important}
-@media(max-width:1060px){.layout{grid-template-columns:minmax(240px,.8fr) minmax(320px,1.3fr)} .exports{grid-column:1/-1}.exports .body{grid-template-columns:1fr 1fr}.exports .actions,.exports .instructions{grid-column:1/-1}}
-@media(max-width:650px){main{padding-top:20px}.layout{grid-template-columns:minmax(0,1fr)}.exports .body{grid-template-columns:1fr}.exports .actions,.exports .instructions{grid-column:auto}}
-.language{margin-inline-start:auto;min-width:112px}
-header .mark{flex:none}
-#pixelArea{justify-content:safe center;align-items:safe start;max-height:425px;overflow:auto}
-#pixelCanvas{max-width:none;flex:none}
-#glyphs button.custom{color:#dbcaff;border-color:#78659f}
-.effect,#editorPanel{background:var(--field);border:1px solid var(--line);border-radius:10px}
-.effect summary,#editorPanel summary{padding:9px 11px;cursor:pointer;font-size:13px;font-weight:700}
-.effect[open] summary,#editorPanel[open] summary{border-bottom:1px solid var(--line)}
-.effectBody,.editorBody{padding:11px}
-.paintTop{justify-content:space-between}
-.gradientFields{align-items:end}
-.projectActions{grid-column:1/-1}
-#status:empty{display:none}
-@media(max-width:460px){header{flex-wrap:wrap}.language{margin-inline-start:0}}
+:root {
+  color-scheme: dark;
+  --bg: #10101d;
+  --panel: #151525;
+  --field: #111222;
+  --line: #494361;
+  --soft-line: #37334e;
+  --ink: #fbf8ff;
+  --muted: #dad3e9;
+  --accent: #d2a9ff;
+  --violet: #8c52e4;
+  --button-top: #2b2941;
+  --button-bottom: #24233a;
+  --mono: Consolas, "Liberation Mono", monospace;
+  --sidebar-width: 182px;
+  --header-height: 74px;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-width: 300px;
+  background: radial-gradient(ellipse at 15% 99%, #26183f 0%, transparent 45%), var(--bg);
+  color: var(--ink);
+  font: 14px/1.4 "Segoe UI", system-ui, sans-serif;
+}
+h1, h2, h3, p { margin: 0; }
+h1 { font-size: clamp(21px, 2vw, 25px); line-height: 1.12; letter-spacing: -.035em; }
+h2 { font-size: 17px; line-height: 1.22; letter-spacing: -.023em; }
+h3 { font-size: 14px; line-height: 1.35; }
+small { color: var(--muted); font-size: .76rem; line-height: 1.35; }
+a { color: var(--accent); }
+button, input, select, textarea { font: inherit; color: inherit; }
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 30px;
+  padding: 4px 9px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: linear-gradient(var(--button-top), var(--button-bottom));
+  font-size: .76rem;
+  font-weight: 650;
+  line-height: 1.2;
+  cursor: pointer;
+}
+button:hover:enabled { border-color: var(--accent); }
+button:disabled { opacity: .46; cursor: default; }
+button.primary, .switch button[aria-pressed="true"], .switch button[aria-selected="true"] {
+  border-color: #bf91fc;
+  background: linear-gradient(150deg, #9b60ee, #7540c6);
+  color: #fff;
+  box-shadow: inset 0 1px 3px #e4c5ff40;
+}
+button.accentButton, button[aria-pressed="true"] {
+  border-color: #855bd3;
+  background: linear-gradient(155deg, #4f3287, #373067);
+}
+:is(button, a, input, select, textarea, canvas, summary):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+input:not([type=checkbox]):not([type=color]), select, textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 29px;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--field);
+  font-size: .82rem;
+  font-weight: 400;
+}
+select {
+  appearance: none;
+  background:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%) calc(100% - 12px) 50% / 5px 5px no-repeat,
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%) calc(100% - 7px) 50% / 5px 5px no-repeat,
+    var(--field);
+  padding-inline-end: 24px;
+}
+select option { background: var(--field); }
+textarea { resize: vertical; font: .76rem/1.35 var(--mono); }
+input[type=color] {
+  width: 34px;
+  height: 27px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--field);
+}
+input[type=checkbox] { margin: 0; accent-color: var(--violet); inline-size: 15px; block-size: 15px; }
+label { display: grid; min-width: 0; gap: 3px; font-size: .77rem; font-weight: 600; }
+label.check, .inlineLabel { display: flex; align-items: center; gap: 7px; }
+label.check { font-size: .78rem; font-weight: 500; }
+.inlineLabel input:not([type=checkbox]):not([type=color]) { width: 70px; }
+.inlineLabel select { width: 62px; }
+[hidden] { display: none !important; }
+
+.appHeader {
+  position: sticky;
+  z-index: 3;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--header-height);
+  gap: 18px;
+  padding: 7px 14px 8px 16px;
+  border-bottom: 1px solid #62507f;
+  background:
+    radial-gradient(ellipse 880px 147px at 7% -96%, #201632 25%, #462575 99%, transparent 100%),
+    linear-gradient(108deg, #10101b 12%, #2b1b4d 61%, #141322 100%);
+}
+.brand { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.brand p { margin-top: 2px; color: #fff; font-size: .9rem; }
+.mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 43px;
+  height: 43px;
+  border: 1px solid #cfadff;
+  border-radius: 12px;
+  background: linear-gradient(155deg, #c489ff, #9c71dc 54%, #be88fa);
+  color: #180e25;
+  font: 800 21px/1 "Segoe UI", sans-serif;
+}
+.headerActions { display: flex; align-items: center; gap: 20px; }
+.quiet { padding: 5px 6px; border-color: transparent; background: transparent; }
+.quiet .uiIcon { width: 19px; height: 19px; }
+.language { gap: 3px; min-width: 172px; }
+.languageField { position: relative; display: block; }
+.languageField .uiIcon { position: absolute; left: 8px; top: 50%; width: 15px; height: 15px; transform: translateY(-50%); pointer-events: none; }
+.languageField select { padding-inline-start: 28px; }
+.skipLink { position: fixed; z-index: 5; top: 8px; left: 8px; transform: translateY(-150%); padding: 8px 12px; background: var(--field); }
+.skipLink:focus { transform: none; }
+.appShell { display: grid; grid-template-columns: var(--sidebar-width) minmax(0, 1fr); }
+.sidebar {
+  position: sticky;
+  top: var(--header-height);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-self: start;
+  min-width: 0;
+  min-height: calc(100dvh - var(--header-height));
+  gap: 15px;
+  padding: 23px 8px 19px;
+  background: linear-gradient(150deg, #1a192d 0%, #17172b 34%, #24193d 100%);
+}
+.sideNav { display: grid; gap: 4px; }
+.navItem {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 40px;
+  padding: 6px 13px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink);
+  font-size: .82rem;
+  font-weight: 500;
+  text-align: start;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.navItem:hover { background: #31264d; border-color: var(--line); }
+.navItem.current { border-color: #8b58de; background: linear-gradient(120deg, #8147dc, #653bb7); }
+.navItem .uiIcon { width: 20px; height: 20px; }
+.navDivider { margin: 8px 8px 5px; border-top: 1px solid #5c5077; }
+.constructLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 8px;
+  padding: 7px 12px;
+  border: 1px solid #725d95;
+  border-radius: 9px;
+  background: #231735;
+  text-decoration: none;
+}
+.constructLink:hover { border-color: var(--accent); }
+.constructLink .uiIcon { width: 28px; height: 28px; }
+.constructLink span { display: grid; line-height: 1.3; }
+.constructLink small { color: var(--accent); }
+.constructLink strong { color: var(--ink); }
+
+main { min-width: 0; padding: 11px 10px 13px 13px; scroll-margin-top: var(--header-height); }
+#configTitle { scroll-margin-top: calc(var(--header-height) + 12px); }
+.card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: linear-gradient(155deg, #19182b 0%, var(--panel) 17%, #121323 100%);
+  box-shadow: inset 0 1px 0 #d7b3ff15, 0 2px 5px #06061155;
+}
+.presetBar {
+  display: grid;
+  grid-template-columns: minmax(220px, .32fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 14px;
+  padding: 5px 15px;
+  background: linear-gradient(110deg, #242039, #1b1a30 50%, #1c1b30);
+}
+.presetBar .sectionHeading { padding-left: 5px; }
+.presetRail { display: flex; justify-content: space-between; gap: 7px; overflow-x: auto; padding: 4px; scrollbar-width: thin; }
+.presetTile { flex: 0 0 45px; width: 45px; height: 45px; min-height: 0; padding: 2px; background: var(--field); }
+.presetTile[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px #d7a9ff99, 0 0 9px #b56bff8c; }
+.presetTile canvas { width: 100%; height: auto; }
+.layout { display: grid; grid-template-columns: minmax(274px, .88fr) minmax(325px, 1.14fr) minmax(310px, 1fr); gap: 11px; }
+.rightRail { display: grid; min-width: 0; gap: 8px; align-content: start; }
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 15px;
+  border-bottom: 1px solid var(--soft-line);
+  background: linear-gradient(140deg, #2f2546, #211f34 46%, #1a1a2e);
+}
+.sectionHeading { display: flex; align-items: center; min-width: 0; gap: 12px; }
+.sectionHeading p { margin-top: 2px; color: var(--muted); font-size: .75rem; line-height: 1.24; }
+.sectionHeading .uiIcon { width: 27px; height: 27px; color: var(--accent); }
+.miniHeading { display: flex; align-items: center; gap: 9px; }
+.miniHeading .uiIcon { width: 17px; height: 17px; color: var(--accent); }
+.body { display: grid; min-width: 0; align-content: start; gap: 10px; padding: 13px 14px; }
+.configCard .body { padding-inline: 16px; }
+.section { display: grid; min-width: 0; gap: 7px; }
+.divided { border-top: 1px solid var(--line); padding-top: 9px; }
+.row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.between { justify-content: space-between; }
+.two, .three { display: grid; min-width: 0; gap: 7px; align-items: start; }
+.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.sizePresets { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.sizePresets button { min-height: 27px; padding-inline: 3px; }
+.hintLine { display: flex; align-items: flex-start; gap: 8px; }
+.hintLine .uiIcon { margin-top: 1px; width: 16px; height: 16px; color: var(--accent); }
+.hintLine small { min-width: 0; }
+.uiIcon { display: block; flex: 0 0 auto; width: 16px; height: 16px; image-rendering: auto; }
+.switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: linear-gradient(140deg, #232137, #1b1a2f);
+}
+.switch button { min-height: 35px; border-color: transparent; background: transparent; }
+.previewTabs { width: min(100%, 292px); grid-template-columns: .75fr 1.25fr; margin-bottom: 12px; }
+.meta {
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--field);
+  color: var(--ink);
+  font-size: .74rem;
+  white-space: nowrap;
+}
+.meta:empty { display: none; }
+.atlasToolbar { min-height: 40px; }
+.iconButton { width: 32px; min-height: 30px; padding: 4px; }
+.ground {
+  --square: #26243b;
+  border: 1px solid #55506e;
+  border-radius: 9px;
+  background-color: #171729;
+  background-image: conic-gradient(var(--square) 25%, transparent 0 50%, var(--square) 0 75%, transparent 0);
+  background-size: 12px 12px;
+}
+#atlasArea {
+  display: grid;
+  place-items: safe center;
+  height: clamp(305px, 37.6vh, 450px);
+  overflow: auto;
+  padding: 10px;
+  scrollbar-color: #a19ab7 #1b1a30;
+  scrollbar-width: thin;
+}
+#atlasArea.solid { background-image: none; }
+#atlasArea.expanded { height: min(68vh, 690px); }
+canvas { display: block; image-rendering: pixelated; }
+canvas.uiIcon { image-rendering: auto; }
+.sampleSection { margin-top: 6px; padding-top: 11px; }
+.sampleSection label > span { font-size: .89rem; }
+.sampleSection input { min-height: 32px; }
+#sampleArea { display: grid; align-content: center; min-height: 80px; max-height: 300px; overflow: auto; padding: 12px; }
+#pixelArea { display: grid; place-items: safe center; min-height: 150px; max-height: 425px; overflow: auto; padding: 12px; }
+#pixelCanvas { touch-action: none; cursor: crosshair; }
+#glyphs { display: grid; grid-template-columns: repeat(auto-fill, minmax(34px, 1fr)); gap: 4px; max-height: 118px; overflow: auto; padding: 3px; }
+#glyphs button { min-height: 27px; padding: 2px; font: 13px var(--mono); }
+#glyphs button.painted { box-shadow: inset 0 -2px #8b73d5; }
+#glyphs button.custom { color: #dbcaff; border-color: #9278c4; }
+
+.rightRail h2 { font-size: 16px; }
+.rightRail .cardHead { min-height: 45px; padding-block: 6px; }
+.rightRail .body { gap: 7px; padding: 8px 11px; }
+.effect {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #111222a8;
+}
+.effect summary { padding: 4px 9px; font-size: .78rem; font-weight: 700; cursor: pointer; background: #1c1b2f; }
+.effect[open] summary { border-bottom: 1px solid var(--soft-line); }
+.effectBody { gap: 5px; padding: 5px 8px 6px; }
+.effectMatrix { gap: 5px 8px; }
+.effectMatrix .inlineLabel { justify-content: space-between; }
+.effectMatrix .inlineLabel span { flex: 1 1 auto; font-weight: 500; }
+.effectMatrix input:not([type=checkbox]):not([type=color]) { flex: 0 0 58px; width: 58px; min-height: 26px; }
+.paint, .paintTop, .gradientFields { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 6px; }
+.paint { justify-content: space-between; }
+.paint label { font-size: .72rem; font-weight: 500; }
+.paint .row { gap: 5px; }
+.paint input[type=color] { width: 31px; }
+.paint label.check { gap: 5px; }
+.paintTop { flex: 0 1 auto; }
+.paint:not(:has(.gradientFields:not([hidden]))) .paintTop { flex: 1; justify-content: space-between; }
+.gradientFields input[type=number] { width: 58px; min-height: 27px; }
+.output { display: grid; min-width: 0; gap: 4px; }
+.output textarea { min-height: 48px; }
+.output button { min-height: 25px; padding: 3px 6px; font-size: .71rem; }
+.widths .output input { font-family: var(--mono); }
+.exportField { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; align-items: center; }
+.exportField button { padding-inline: 8px; }
+.exportActions { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 7px; }
+.exportActions button { min-width: 0; gap: 5px; padding-inline: 5px; font-size: .73rem; }
+.exports .body { gap: 6px; }
+.exports .output { gap: 3px; }
+.exports .output textarea { min-height: 43px; }
+.actions .primary { min-height: 32px; }
+.actions #spriteFontHint { min-height: 1lh; }
+.projectActions button { min-height: 34px; }
+#status { color: #dfc9ff; font-size: .76rem; }
+#status:empty { display: none; }
+#status.error, #buildNote.error, #spriteFontHint.error { color: #ffb3c2; }
+
+dialog {
+  width: min(450px, calc(100% - 28px));
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  color: var(--ink);
+  padding: 15px;
+}
+dialog::backdrop { background: #090816b7; }
+.dialogHead { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 11px; }
+dialog p + p, dialog label + p { margin-top: 10px; }
+dialog ol { margin: 0; padding-inline-start: 21px; }
+dialog li + li { margin-top: 7px; }
+.dialogActions { justify-content: flex-end; margin-top: 13px; }
+body.highContrast {
+  --bg: #090910;
+  --field: #0a0b14;
+  --panel: #10101c;
+  --line: #a79abd;
+  --soft-line: #7c7293;
+  --muted: #f6efff;
+  --accent: #efcdff;
+}
+body.highContrast .appHeader, body.highContrast .sidebar, body.highContrast .card, body.highContrast .cardHead {
+  background: var(--panel);
+}
+
+@media (min-width: 1400px) {
+  .exportActions button { white-space: nowrap; }
+}
+@media (max-width: 1320px) {
+  :root { --sidebar-width: 158px; }
+  .sidebar { padding-inline: 7px; }
+  .navItem { padding-inline: 9px; gap: 8px; }
+  .constructLink { margin-inline: 2px; padding-inline: 8px; }
+  .presetBar { grid-template-columns: minmax(195px, .25fr) minmax(0, 1fr); }
+}
+@media (max-width: 1115px) {
+  :root { --sidebar-width: 0px; }
+  .appShell { display: block; }
+  .sidebar { position: static; display: block; min-height: 0; padding: 6px 10px; }
+  .sideNav { display: flex; overflow-x: auto; gap: 5px; padding: 2px; scrollbar-width: thin; }
+  .navItem { flex: 0 0 auto; width: auto; min-height: 32px; }
+  .navDivider, .constructLink { display: none; }
+  main { padding-inline: 11px; }
+  .layout { grid-template-columns: minmax(260px, .86fr) minmax(320px, 1.2fr); }
+  .rightRail { grid-column: 1/-1; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 11px; }
+}
+@media (max-width: 670px) {
+  :root { --header-height: 102px; }
+  .appHeader { position: relative; display: grid; gap: 8px; padding: 10px 12px; }
+  .brand { gap: 10px; }
+  .brand p { font-size: .75rem; }
+  .mark { flex-basis: 37px; height: 37px; border-radius: 9px; font-size: 18px; }
+  .headerActions { flex-wrap: wrap; gap: 5px 6px; }
+  .language { margin-inline-start: auto; min-width: 128px; max-width: 151px; }
+  .language > span:first-child { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .presetBar { grid-template-columns: minmax(0, 1fr); gap: 3px; padding: 8px 9px; margin-bottom: 10px; }
+  .presetBar h2 { font-size: 15px; }
+  .presetBar .sectionHeading p { display: none; }
+  .presetBar .sectionHeading .uiIcon { width: 21px; height: 21px; }
+  .layout, .rightRail { grid-template-columns: minmax(0, 1fr); }
+  .rightRail { grid-column: auto; }
+  .previewTabs { margin-bottom: 4px; }
+  #atlasArea { height: 340px; }
+}
+@media (max-width: 363px) {
+  .effectMatrix .inlineLabel, .exportField { display: grid; }
+  .effectMatrix input:not([type=checkbox]):not([type=color]) { width: 100%; }
+}
 </style>
 </head>
 <body>
-<main>
-<header>
-  <div class="mark" aria-hidden="true">Aa</div>
-  <div><h1>SpriteFont Studio</h1><p data-t="tagline">Sprite font generator and editor for Construct 3</p></div>
-  <label class="language"><span data-t="language">Language</span><select id="language">
-    <option value="auto" data-t="browserLanguage">Browser default</option><option value="en">English</option><option value="es">Español</option>
-  </select></label>
+<a class="skipLink" href="#workspace" data-t="skipWorkspace">Skip to workspace</a>
+<header class="appHeader">
+  <div class="brand">
+    <div class="mark" aria-hidden="true">Aa</div>
+    <div><h1>SpriteFont Studio</h1><p data-t="tagline">Sprite font generator and editor for Construct 3</p></div>
+  </div>
+  <div class="headerActions">
+    <button type="button" class="quiet" data-dialog="helpDialog"><canvas class="uiIcon" data-icon="help"></canvas><span data-t="help">Help</span></button>
+    <button type="button" class="quiet" data-dialog="accessDialog"><canvas class="uiIcon" data-icon="access"></canvas><span data-t="accessibility">Accessibility</span></button>
+    <label class="language"><span data-t="language">Language</span>
+      <span class="languageField"><canvas class="uiIcon" data-icon="globe"></canvas><select id="language">
+        <option value="auto" data-t="browserLanguage">Browser default</option><option value="en">English</option><option value="es">Español</option>
+      </select></span>
+    </label>
+  </div>
 </header>
-<section class="card presetBar" aria-labelledby="presetsTitle">
-  <h2 id="presetsTitle" data-t="stylePresets">Style presets</h2>
-  <div class="presetRail" id="stylePresets" role="group" aria-labelledby="presetsTitle"></div>
-</section>
-<div class="layout">
-<section class="card" aria-labelledby="configTitle">
-  <div class="cardHead"><h2 id="configTitle" data-t="settings">Settings</h2></div>
-  <div class="body">
-    <div class="switch" role="group" data-a="glyphSource">
-      <button type="button" id="fontMode" aria-pressed="true" data-t="fromFont">From a font</button>
-      <button type="button" id="drawMode" aria-pressed="false" data-t="draw">Draw</button>
-    </div>
-    <div id="fontSettings" class="section">
-      <label><span data-t="font">Font</span><select id="fonts">
-        <option value="consolas">Consolas</option><option value="courier">Courier New</option>
-        <option value="system" data-t="browserMono">Browser monospace</option>
-      </select></label>
-      <div class="row">
-        <button type="button" id="scan" data-t="installed">Installed fonts</button>
-        <button type="button" id="openFont" data-t="openFont">Open font file…</button>
-        <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2" hidden>
+<div class="appShell">
+  <aside class="sidebar">
+    <nav class="sideNav" data-a="navigation">
+      <a class="navItem current" href="#workspace" aria-current="page"><canvas class="uiIcon" data-icon="home"></canvas><span data-t="home">Home</span></a>
+      <button type="button" class="navItem" data-dialog="newDialog"><canvas class="uiIcon" data-icon="plus"></canvas><span data-t="newProject">New project</span></button>
+      <button type="button" class="navItem" id="openProjectShortcut"><canvas class="uiIcon" data-icon="folder"></canvas><span data-t="openProject">Open project</span></button>
+      <button type="button" class="navItem" id="exportProjectShortcut"><canvas class="uiIcon" data-icon="export"></canvas><span data-t="exportProject">Export project</span></button>
+      <div class="navDivider"></div>
+      <a class="navItem" href="#configTitle"><canvas class="uiIcon" data-icon="settings"></canvas><span data-t="navSettings">Settings</span></a>
+      <button type="button" class="navItem" data-dialog="aboutDialog"><canvas class="uiIcon" data-icon="info"></canvas><span data-t="about">About</span></button>
+    </nav>
+    <a class="constructLink" href="https://editor.construct.net/" target="_blank" rel="noopener">
+      <canvas class="uiIcon" data-icon="gamepad"></canvas>
+      <span><small data-t="openIn">Open editor</small><strong>Construct 3</strong></span>
+    </a>
+  </aside>
+  <main id="workspace" tabindex="-1">
+    <section class="card presetBar" aria-labelledby="presetsTitle">
+      <div class="sectionHeading">
+        <canvas class="uiIcon" data-icon="layers"></canvas>
+        <div><h2 id="presetsTitle" data-t="stylePresets">Style presets</h2><p data-t="presetIntro">Apply a starting style to your font.</p></div>
       </div>
-      <small id="fontHint"></small>
-      <div id="fontSizing" class="section">
-        <div class="two">
-          <label><span data-t="minSize">Min. font size (px)</span><input id="minFontSize" type="number" min="1" max="512" value="1"></label>
-          <label><span data-t="maxSize">Max. font size (px)</span><input id="fontSize" type="number" min="1" max="512" data-p="cellHeight"></label>
-        </div>
-        <label><span data-t="offset">Vertical offset (px)</span><input id="offset" type="number" min="-512" max="512" value="0"></label>
-        <label class="check"><input type="checkbox" id="hard" checked><span data-t="hard">Hard edges</span></label>
-      </div>
-    </div>
-    <div class="section divided">
-      <div class="three">
-        <label><span data-t="width">Width (px)</span><input id="width" type="number" min="1" max="512" value="16"></label>
-        <label><span data-t="height">Height (px)</span><input id="height" type="number" min="1" max="512" value="16"></label>
-        <label><span data-t="columns">Columns</span><input id="columns" type="number" min="1" max="128" value="8"></label>
-      </div>
-      <div class="row" role="group" data-a="cellSizes">
-        <button type="button" data-size="16">16 px</button><button type="button" data-size="24">24 px</button>
-        <button type="button" data-size="32">32 px</button><button type="button" data-size="48">48 px</button>
-        <button type="button" data-size="64">64 px</button>
-      </div>
-      <label><span data-t="charset">Character set</span><textarea id="charset" maxlength="262144" spellcheck="false"></textarea></label>
-      <div class="row between"><small id="charCount"></small><button type="button" id="preset" data-t="preset">Restore example</button></div>
-    </div>
-    <div class="section divided">
-      <label><span data-t="advance">Advance</span><select id="spacing">
-        <option value="fixed" data-t="fixed">Fixed · monospace</option>
-        <option value="auto" selected data-t="proportional">Proportional · based on glyph</option>
-      </select></label>
-      <div class="two" id="autoSettings">
-        <label><span data-t="gap">Right gap (px)</span><input id="gap" type="number" min="0" max="512" value="1"></label>
-        <label><span data-t="spaceWidth">Space width (px)</span><input id="space" type="number" min="1" max="512" value="3"></label>
-      </div>
-    </div>
-    <div class="section divided" aria-labelledby="styleTitle">
-      <h3 id="styleTitle" data-t="style">Style</h3>
-      <div class="paint section" id="fillPaint"></div>
-      <details class="effect" id="outlinePanel">
-        <summary data-t="outline">Outline</summary>
-        <div class="section effectBody">
-          <label class="check"><input type="checkbox" id="outlineOn"><span data-t="enableOutline">Enable outline</span></label>
-          <label><span data-t="thickness">Thickness (px)</span><input id="outlineSize" type="number" min="1" max="32" value="1"></label>
-          <div class="paint section" id="outlinePaint"></div>
-        </div>
-      </details>
-      <details class="effect" id="shadowPanel">
-        <summary data-t="shadow">Drop shadow</summary>
-        <div class="section effectBody">
-          <label class="check"><input type="checkbox" id="shadowOn"><span data-t="enableShadow">Enable shadow</span></label>
-          <div class="two">
-            <label><span data-t="shadowX">Horizontal offset (px)</span><input id="shadowX" type="number" min="-64" max="64" value="2"></label>
-            <label><span data-t="shadowY">Vertical offset (px)</span><input id="shadowY" type="number" min="-64" max="64" value="2"></label>
-            <label><span data-t="blur">Blur (px)</span><input id="shadowBlur" type="number" min="0" max="32" value="0"></label>
-            <label><span data-t="opacity">Opacity (%)</span><input id="shadowOpacity" type="number" min="0" max="100" value="60"></label>
+      <div class="presetRail" id="stylePresets" role="group" aria-labelledby="presetsTitle"></div>
+    </section>
+    <div class="layout">
+      <section class="card configCard" aria-labelledby="configTitle">
+        <div class="cardHead">
+          <div class="sectionHeading"><canvas class="uiIcon" data-icon="settings"></canvas>
+            <div><h2 id="configTitle" tabindex="-1" data-t="settings">Settings</h2><p data-t="settingsIntro">Set the source, cell size and spacing.</p></div>
           </div>
-          <div class="paint section" id="shadowPaint"></div>
         </div>
-      </details>
-    </div>
-  </div>
-</section>
-<section class="card" aria-labelledby="workTitle">
-  <div class="cardHead"><h2 id="workTitle" data-t="preview">Preview</h2><span class="meta" id="atlasMeta"></span></div>
-  <div class="body">
-    <details id="editorPanel" class="section">
-      <summary id="editorTitle" data-t="editor">Pixel editor</summary>
-      <div id="drawSettings" class="section editorBody" aria-labelledby="editorTitle">
-        <div class="two">
-          <label><span data-t="character">Character</span><select id="selectedGlyph"></select></label>
-          <label><span data-t="pixelZoom">Editor zoom</span><select id="pixelZoom">
-            <option value="0" data-t="fit">Fit</option><option value="2">2×</option>
-            <option value="4">4×</option><option value="8">8×</option><option value="16">16×</option>
-          </select></label>
+        <div class="body">
+          <div class="switch" role="group" data-a="glyphSource">
+            <button type="button" id="fontMode" aria-pressed="true"><canvas class="uiIcon" data-icon="font"></canvas><span data-t="fromFont">From a font</span></button>
+            <button type="button" id="drawMode" aria-pressed="false"><canvas class="uiIcon" data-icon="pencil"></canvas><span data-t="draw">Draw</span></button>
+          </div>
+          <div id="fontSettings" class="section">
+            <div class="miniHeading"><canvas class="uiIcon" data-icon="font"></canvas><h3 id="fontTitle" data-t="font">Font</h3></div>
+            <select id="fonts" aria-labelledby="fontTitle">
+              <option value="consolas">Consolas</option><option value="courier">Courier New</option>
+              <option value="system" data-t="browserMono">Browser monospace</option>
+            </select>
+            <div class="two">
+              <button type="button" id="scan"><canvas class="uiIcon" data-icon="monitor"></canvas><span data-t="installed">Installed fonts</span></button>
+              <button type="button" id="openFont"><canvas class="uiIcon" data-icon="folder"></canvas><span data-t="openFont">Open font file…</span></button>
+              <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2" hidden>
+            </div>
+            <div class="hintLine"><canvas class="uiIcon" data-icon="info"></canvas><small id="fontHint"></small></div>
+            <div id="fontSizing" class="section divided">
+              <div class="miniHeading"><canvas class="uiIcon" data-icon="resize"></canvas><h3 data-t="fontSizing">Font size</h3></div>
+              <div class="two">
+                <label><span data-t="minSize">Min. font size (px)</span><input id="minFontSize" type="number" min="1" max="512" value="1"></label>
+                <label><span data-t="maxSize">Max. font size (px)</span><input id="fontSize" type="number" min="1" max="512" data-p="cellHeight"></label>
+              </div>
+              <label><span data-t="offset">Vertical offset (px)</span><input id="offset" type="number" min="-512" max="512" value="0"></label>
+              <label class="check"><input type="checkbox" id="hard" checked><span data-t="hard">Hard edges</span></label>
+            </div>
+          </div>
+          <div class="section divided" aria-labelledby="atlasSettingsTitle">
+            <div class="miniHeading"><canvas class="uiIcon" data-icon="grid"></canvas><h3 id="atlasSettingsTitle" data-t="atlasCanvas">Atlas canvas</h3></div>
+            <div class="three">
+              <label><span data-t="width">Width (px)</span><input id="width" type="number" min="1" max="512" value="16"></label>
+              <label><span data-t="height">Height (px)</span><input id="height" type="number" min="1" max="512" value="16"></label>
+              <label><span data-t="columns">Columns</span><input id="columns" type="number" min="1" max="128" value="8"></label>
+            </div>
+            <div class="sizePresets" role="group" data-a="cellSizes">
+              <button type="button" data-size="16">16 px</button><button type="button" data-size="24">24 px</button>
+              <button type="button" data-size="32">32 px</button><button type="button" data-size="48">48 px</button>
+              <button type="button" data-size="64">64 px</button>
+            </div>
+          </div>
+          <div class="section divided">
+            <div class="miniHeading"><canvas class="uiIcon" data-icon="font"></canvas><h3 id="charsetTitle" data-t="charset">Character set</h3></div>
+            <textarea id="charset" aria-labelledby="charsetTitle" maxlength="262144" spellcheck="false"></textarea>
+            <div class="row between"><small id="charCount"></small>
+              <button type="button" id="preset"><canvas class="uiIcon" data-icon="reset"></canvas><span data-t="preset">Restore example</span></button>
+            </div>
+          </div>
+          <div class="section divided">
+            <div class="miniHeading"><canvas class="uiIcon" data-icon="spacing"></canvas><h3 id="advanceTitle" data-t="advance">Advance</h3></div>
+            <select id="spacing" aria-labelledby="advanceTitle">
+              <option value="fixed" data-t="fixed">Fixed · monospace</option>
+              <option value="auto" selected data-t="proportional">Proportional · based on glyph</option>
+            </select>
+            <div class="two" id="autoSettings">
+              <label><span data-t="gap">Right gap (px)</span><input id="gap" type="number" min="0" max="512" value="1"></label>
+              <label><span data-t="spaceWidth">Space width (px)</span><input id="space" type="number" min="1" max="512" value="3"></label>
+            </div>
+          </div>
         </div>
-        <div id="glyphs" role="group" data-a="editCharacters"></div>
-        <div class="row" role="group" data-a="drawingTools">
-          <button type="button" id="pencil" aria-pressed="true" data-t="pencil">Pencil</button>
-          <button type="button" id="eraser" aria-pressed="false" data-t="eraser">Eraser</button>
-          <button type="button" id="undo" disabled data-t="undo">Undo</button>
-          <button type="button" id="clear" data-t="clear">Clear glyph</button>
-          <button type="button" id="resetGlyph" data-t="resetGlyph">Restore original</button>
+      </section>
+      <section class="card previewCard" aria-labelledby="workTitle">
+        <div class="cardHead">
+          <div class="sectionHeading"><canvas class="uiIcon" data-icon="eye"></canvas>
+            <div><h2 id="workTitle" data-t="preview">Preview</h2><p data-t="previewIntro">Inspect the atlas and try your font.</p></div>
+          </div>
+          <span class="meta" id="atlasMeta"></span>
         </div>
-        <div id="pixelArea" class="ground"><canvas id="pixelCanvas" tabindex="0" data-a="grid"></canvas></div>
-        <small id="editorHint"></small>
-        <div class="section divided">
-          <label><span data-t="customAdvance">Character advance (px)</span><input id="glyphAdvance" type="number" min="1" max="512" step="1" inputmode="numeric"></label>
-          <div class="row between"><small id="advanceHint"></small><button type="button" id="resetAdvance" data-t="resetAdvance">Use calculated width</button></div>
+        <div class="body">
+          <div class="switch previewTabs" id="previewTabs" role="tablist" aria-labelledby="workTitle">
+            <button type="button" id="atlasTab" role="tab" aria-controls="atlasPanel" aria-selected="true"><canvas class="uiIcon" data-icon="grid"></canvas><span>Atlas</span></button>
+            <button type="button" id="editorTab" role="tab" aria-controls="editorPanel" aria-selected="false" tabindex="-1"><canvas class="uiIcon" data-icon="pencil"></canvas><span data-t="editor">Pixel editor</span></button>
+          </div>
+          <div id="atlasPanel" class="section" role="tabpanel" aria-labelledby="atlasTab">
+            <div class="row between atlasToolbar">
+              <h3 id="atlasTitle" data-t="atlasHeading">Character atlas</h3>
+              <div class="row">
+                <label class="inlineLabel" for="zoom"><span data-t="zoom">Zoom</span><select id="zoom"><option value="1">1×</option><option value="2" selected>2×</option><option value="3">3×</option><option value="4">4×</option></select></label>
+                <button type="button" class="iconButton" id="expandAtlas" data-a="expandAtlas" data-tip="expandAtlas" aria-pressed="false"><canvas class="uiIcon" data-icon="expand"></canvas></button>
+                <button type="button" class="iconButton" id="atlasGrid" data-a="toggleGrid" data-tip="toggleGrid" aria-pressed="true"><canvas class="uiIcon" data-icon="grid"></canvas></button>
+              </div>
+            </div>
+            <div id="atlasArea" class="ground"><canvas id="atlas" data-a="atlas"></canvas></div>
+            <div class="hintLine"><canvas class="uiIcon" data-icon="info"></canvas><small id="buildNote"></small></div>
+          </div>
+          <div id="editorPanel" class="section" role="tabpanel" aria-labelledby="editorTab" hidden>
+            <div id="drawSettings" class="section">
+              <div class="two">
+                <label><span data-t="character">Character</span><select id="selectedGlyph"></select></label>
+                <label><span data-t="pixelZoom">Editor zoom</span><select id="pixelZoom">
+                  <option value="0" data-t="fit">Fit</option><option value="2">2×</option>
+                  <option value="4">4×</option><option value="8">8×</option><option value="16">16×</option>
+                </select></label>
+              </div>
+              <div id="glyphs" role="group" data-a="editCharacters"></div>
+              <div class="row" role="group" data-a="drawingTools">
+                <button type="button" id="pencil" aria-pressed="true" data-t="pencil">Pencil</button>
+                <button type="button" id="eraser" aria-pressed="false" data-t="eraser">Eraser</button>
+                <button type="button" id="undo" disabled data-t="undo">Undo</button>
+                <button type="button" id="clear" data-t="clear">Clear glyph</button>
+                <button type="button" id="resetGlyph" data-t="resetGlyph">Restore original</button>
+              </div>
+              <div id="pixelArea" class="ground"><canvas id="pixelCanvas" tabindex="0" data-a="grid"></canvas></div>
+              <small id="editorHint"></small>
+              <div class="section divided">
+                <label><span data-t="customAdvance">Character advance (px)</span><input id="glyphAdvance" type="number" min="1" max="512" step="1" inputmode="numeric"></label>
+                <div class="row between"><small id="advanceHint"></small><button type="button" id="resetAdvance" data-t="resetAdvance">Use calculated width</button></div>
+              </div>
+            </div>
+          </div>
+          <section class="section divided sampleSection">
+            <label><span data-t="sampleText">Sample text</span><input id="sample" maxlength="300" spellcheck="false"></label>
+            <div id="sampleArea" class="ground"><canvas id="sampleCanvas" data-a="sampleCanvas"></canvas></div>
+          </section>
         </div>
+      </section>
+      <div class="rightRail">
+        <section class="card styleCard" aria-labelledby="styleTitle">
+          <div class="cardHead">
+            <div class="sectionHeading"><canvas class="uiIcon" data-icon="palette"></canvas>
+              <div><h2 id="styleTitle" data-t="style">Style</h2><p data-t="styleIntro">Customize the fill, outline and shadow.</p></div>
+            </div>
+          </div>
+          <div class="body">
+            <div class="paint section" id="fillPaint"></div>
+            <details class="effect" id="outlinePanel" open>
+              <summary data-t="outline">Outline</summary>
+              <div class="section effectBody">
+                <div class="row between">
+                  <label class="check"><input type="checkbox" id="outlineOn"><span data-t="enableOutline">Enable outline</span></label>
+                  <label class="inlineLabel"><span data-t="thickness">Thickness (px)</span><input id="outlineSize" type="number" min="1" max="32" value="1"></label>
+                </div>
+                <div class="paint section" id="outlinePaint"></div>
+              </div>
+            </details>
+            <details class="effect" id="shadowPanel" open>
+              <summary data-t="shadow">Drop shadow</summary>
+              <div class="section effectBody">
+                <label class="check"><input type="checkbox" id="shadowOn"><span data-t="enableShadow">Enable shadow</span></label>
+                <div class="two effectMatrix">
+                  <label class="inlineLabel"><span data-t="shadowX">Horizontal offset (px)</span><input id="shadowX" type="number" min="-64" max="64" value="2"></label>
+                  <label class="inlineLabel"><span data-t="shadowY">Vertical offset (px)</span><input id="shadowY" type="number" min="-64" max="64" value="2"></label>
+                  <label class="inlineLabel"><span data-t="blur">Blur (px)</span><input id="shadowBlur" type="number" min="0" max="32" value="0"></label>
+                  <label class="inlineLabel"><span data-t="opacity">Opacity (%)</span><input id="shadowOpacity" type="number" min="0" max="100" value="60"></label>
+                </div>
+                <div class="paint section" id="shadowPaint"></div>
+              </div>
+            </details>
+          </div>
+        </section>
+        <section class="card exports" aria-labelledby="exportTitle">
+          <div class="cardHead">
+            <div class="sectionHeading"><canvas class="uiIcon" data-icon="layers"></canvas>
+              <div><h2 id="exportTitle" data-t="exports">Export to Construct 3</h2><p data-t="exportIntro">Copy the object or export the atlas.</p></div>
+            </div>
+          </div>
+          <div class="body">
+            <div class="section actions">
+              <div class="exportActions">
+                <button type="button" class="primary" id="copySpriteFont" data-output><canvas class="uiIcon" data-icon="copy"></canvas><span data-t="copySpriteFont">Copy Sprite Font</span></button>
+                <button type="button" id="copyImage" data-output><canvas class="uiIcon" data-icon="image"></canvas><span data-t="copyImage">Copy image</span></button>
+                <button type="button" id="download" data-output><canvas class="uiIcon" data-icon="download"></canvas><span data-t="downloadPng">Download PNG</span></button>
+              </div>
+              <small id="spriteFontHint" role="status" data-t="pasteSpriteFontHelp">Paste into a Construct 3 layout with Ctrl+V.</small>
+            </div>
+            <div class="two widths">
+              <div class="output"><label>Character width<input id="outWidth" readonly></label><button type="button" data-output data-copy="outWidth" data-t="copyWidth">Copy width</button></div>
+              <div class="output"><label>Character height<input id="outHeight" readonly></label><button type="button" data-output data-copy="outHeight" data-t="copyHeight">Copy height</button></div>
+            </div>
+            <div class="output">
+              <label for="outChars">Character set</label>
+              <div class="exportField"><textarea id="outChars" readonly spellcheck="false"></textarea>
+                <button type="button" data-output data-copy="outChars"><canvas class="uiIcon" data-icon="copy"></canvas><span data-t="copyChars">Copy characters</span></button>
+              </div>
+            </div>
+            <div class="output">
+              <label for="outSpacing">Spacing data</label>
+              <div class="exportField"><textarea id="outSpacing" readonly spellcheck="false"></textarea>
+                <button type="button" data-output data-copy="outSpacing"><canvas class="uiIcon" data-icon="copy"></canvas><span data-t="copyJson">Copy JSON</span></button>
+              </div>
+            </div>
+            <div class="hintLine"><canvas class="uiIcon" data-icon="info"></canvas><small data-t="constructHelp">Import or paste the PNG into the Sprite Font object's image editor. Paste these four properties and set Character spacing to 0.</small></div>
+            <div class="section divided projectActions" aria-labelledby="projectTitle">
+              <div class="miniHeading"><canvas class="uiIcon" data-icon="folder"></canvas><h3 id="projectTitle" data-t="project">Editable project</h3></div>
+              <div class="two">
+                <button type="button" class="accentButton" id="exportProject"><canvas class="uiIcon" data-icon="export"></canvas><span data-t="exportProject">Export project</span></button>
+                <button type="button" id="importProject"><canvas class="uiIcon" data-icon="folder"></canvas><span data-t="importProject">Import project…</span></button>
+                <input type="file" id="projectFile" accept=".json,.spritefont,application/json" hidden>
+              </div>
+            </div>
+            <div id="status" role="status" aria-live="polite"></div>
+          </div>
+        </section>
       </div>
-    </details>
-    <section class="section" aria-labelledby="atlasTitle">
-      <div class="row between"><h3 id="atlasTitle">Atlas</h3><label for="zoom"><span data-t="zoom">Zoom</span><select id="zoom"><option value="1">1×</option><option value="2" selected>2×</option><option value="3">3×</option><option value="4">4×</option></select></label></div>
-      <div id="atlasArea" class="ground"><canvas id="atlas" data-a="atlas"></canvas></div>
-      <small id="buildNote"></small>
-    </section>
-    <section class="section divided">
-      <label><span data-t="sampleText">Sample text</span><input id="sample" maxlength="300" spellcheck="false"></label>
-      <div id="sampleArea" class="ground"><canvas id="sampleCanvas" data-a="sampleCanvas"></canvas></div>
-    </section>
-  </div>
-</section>
-<section class="card exports" aria-labelledby="exportTitle">
-  <div class="cardHead"><h2 id="exportTitle" data-t="exports">Export to Construct 3</h2></div>
-  <div class="body">
-    <div class="section actions">
-      <button type="button" class="primary" id="copySpriteFont" data-output data-t="copySpriteFont">Copy Sprite Font</button>
-      <small id="spriteFontHint" role="status" data-t="pasteSpriteFontHelp">Paste into a Construct 3 layout with Ctrl+V.</small>
-      <div class="two">
-        <button type="button" id="copyImage" data-output data-t="copyImage">Copy image</button>
-        <button type="button" id="download" data-output data-t="downloadPng">Download PNG</button>
-      </div>
     </div>
-    <div class="two widths">
-      <div class="output"><label>Character width<input id="outWidth" readonly></label><button type="button" data-output data-copy="outWidth" data-t="copyWidth">Copy width</button></div>
-      <div class="output"><label>Character height<input id="outHeight" readonly></label><button type="button" data-output data-copy="outHeight" data-t="copyHeight">Copy height</button></div>
-    </div>
-    <div class="output"><label>Character set<textarea id="outChars" readonly spellcheck="false"></textarea></label><button type="button" data-output data-copy="outChars" data-t="copyChars">Copy characters</button></div>
-    <div class="output"><label>Spacing data<textarea id="outSpacing" readonly spellcheck="false"></textarea></label><button type="button" data-output data-copy="outSpacing" data-t="copyJson">Copy JSON</button></div>
-    <small class="instructions" data-t="constructHelp">Import or paste the PNG into the Sprite Font object's image editor. Paste these four properties and set Character spacing to 0.</small>
-    <div class="section divided projectActions" aria-labelledby="projectTitle">
-      <h3 id="projectTitle" data-t="project">Editable project</h3>
-      <div class="two">
-        <button type="button" id="exportProject" data-t="exportProject">Export project</button>
-        <button type="button" id="importProject" data-t="importProject">Import project…</button>
-        <input type="file" id="projectFile" accept=".json,.spritefont,application/json" hidden>
-      </div>
-      <div id="status" role="status" aria-live="polite"></div>
-    </div>
-  </div>
-</section>
+  </main>
 </div>
-</main>
+<dialog id="helpDialog" aria-labelledby="helpTitle">
+  <div class="dialogHead"><h2 id="helpTitle" data-t="help">Help</h2><button type="button" class="iconButton" data-close-dialog data-a="close"><canvas class="uiIcon" data-icon="close"></canvas></button></div>
+  <ol>
+    <li data-t="helpSource">Select an installed font, open a font file, or choose Draw.</li>
+    <li data-t="helpStyle">Apply a style preset and use the Pixel editor tab to adjust individual glyphs and advances.</li>
+    <li data-t="helpCopy">Choose Copy Sprite Font, paste it in your Construct 3 layout and click to place it.</li>
+  </ol>
+</dialog>
+<dialog id="accessDialog" aria-labelledby="accessTitle">
+  <div class="dialogHead"><h2 id="accessTitle" data-t="accessibility">Accessibility</h2><button type="button" class="iconButton" data-close-dialog data-a="close"><canvas class="uiIcon" data-icon="close"></canvas></button></div>
+  <label class="check"><input type="checkbox" id="highContrast"><span data-t="highContrast">High contrast</span></label>
+  <p data-t="keyboardTabs">In the preview tabs, use the arrow keys to switch between the atlas and the pixel editor.</p>
+</dialog>
+<dialog id="aboutDialog" aria-labelledby="aboutTitle">
+  <div class="dialogHead"><h2 id="aboutTitle" data-t="about">About</h2><button type="button" class="iconButton" data-close-dialog data-a="close"><canvas class="uiIcon" data-icon="close"></canvas></button></div>
+  <p data-t="tagline">Sprite font generator and editor for Construct 3</p>
+  <p><a href="https://github.com/RealLotex/SpriteFont-Studio-Construct-3" target="_blank" rel="noopener" data-t="viewSource">View source on GitHub</a></p>
+</dialog>
+<dialog id="newDialog" aria-labelledby="newTitle">
+  <div class="dialogHead"><h2 id="newTitle" data-t="newProject">New project</h2><button type="button" class="iconButton" data-close-dialog data-a="close"><canvas class="uiIcon" data-icon="close"></canvas></button></div>
+  <p data-t="newProjectNotice">Starting a new project replaces the current one. Export it first if you want to keep a copy.</p>
+  <div class="row dialogActions">
+    <button type="button" data-close-dialog data-t="cancel">Cancel</button>
+    <button type="button" class="primary" id="confirmNewProject" data-t="newProject">New project</button>
+  </div>
+</dialog>
 <script>
 'use strict';
 
@@ -877,7 +1320,7 @@ function renderEditor() {
   byId('editorHint').textContent = selected ? t(drawable ? 'drawHint' : 'editSpace') : '';
   picker.value = selected ?? '';
   renderAdvance();
-  if (byId('editorPanel').open) drawGrid();
+  if (!byId('editorPanel').hidden) drawGrid();
 }
 
 function renderAdvance() {
@@ -905,7 +1348,7 @@ function renderAdvance() {
 const gridTile = document.createElement('canvas');
 const gridContext = gridTile.getContext('2d');
 function drawGrid() {
-  if (!editor || pixelCanvas.hidden || !byId('editorPanel').open) return;
+  if (!editor || pixelCanvas.hidden || byId('editorPanel').hidden) return;
   const {art, config, layer} = editor;
   const {width, height} = art;
   const scale = Math.min(Math.floor(MAX_ATLAS / Math.max(width, height)),
@@ -1008,8 +1451,21 @@ function finishStroke(event) {
   }
 }
 
+function selectPreviewTab(id) {
+  const edit = id === 'editorTab';
+  if (!edit) finishStroke();
+  byId('atlasPanel').hidden = edit;
+  byId('editorPanel').hidden = !edit;
+  for (const tabId of ['atlasTab', 'editorTab']) {
+    const tab = byId(tabId);
+    tab.setAttribute('aria-selected', String(tabId === id));
+    tab.tabIndex = tabId === id ? 0 : -1;
+  }
+  if (edit) drawGrid();
+}
+
 function changeMode(next) {
-  if (next === 'draw') byId('editorPanel').open = true;
+  if (next === 'draw') selectPreviewTab('editorTab');
   if (mode === next) return;
   finishStroke();
   mode = next;
@@ -1341,8 +1797,6 @@ function applyProject(project, localSource) {
   mode = project.mode;
   selectedGlyph = project.selectedGlyph;
   keyboardCursor = {x: 0, y: 0};
-  byId('outlinePanel').open = fieldValue('outlineOn');
-  byId('shadowPanel').open = fieldValue('shadowOn');
   setHint(activeFont.snapshot ? 'snapshotHelp' : 'fontHelp');
   scheduleBuild();
   if (recoverable && saved) resumeLocalFont(saved.label, localSource, project.fontEdits, activeFont);
@@ -1645,6 +2099,35 @@ async function downloadImage() {
 
 const translations = {
   tagline: ['Sprite font generator and editor for Construct 3', 'Generador y editor de sprite fonts para Construct 3'],
+  skipWorkspace: ['Skip to workspace', 'Saltar a la herramienta'],
+  help: ['Help', 'Ayuda'],
+  accessibility: ['Accessibility', 'Accesibilidad'],
+  navigation: ['Project navigation', 'Navegación del proyecto'],
+  home: ['Home', 'Inicio'],
+  newProject: ['New project', 'Nuevo proyecto'],
+  openProject: ['Open project', 'Abrir proyecto'],
+  navSettings: ['Settings', 'Ajustes'],
+  about: ['About', 'Acerca de'],
+  openIn: ['Open editor', 'Abrir editor'],
+  presetIntro: ['Apply a starting style to your font.', 'Aplicá un estilo inicial a tu fuente.'],
+  settingsIntro: ['Set the source, cell size and spacing.', 'Ajustá la fuente, el tamaño y el espaciado.'],
+  fontSizing: ['Font size', 'Tamaño de la fuente'],
+  atlasCanvas: ['Atlas canvas', 'Lienzo del atlas'],
+  previewIntro: ['Inspect the atlas and try your font.', 'Revisá el atlas y probá tu sprite font.'],
+  atlasHeading: ['Character atlas', 'Atlas de caracteres'],
+  expandAtlas: ['Expand atlas view', 'Ampliar el atlas'],
+  toggleGrid: ['Transparency grid', 'Cuadrícula de transparencia'],
+  styleIntro: ['Customize the fill, outline and shadow.', 'Definí el relleno, el contorno y la sombra.'],
+  exportIntro: ['Copy the object or export the atlas.', 'Copiá el objeto o exportá el atlas.'],
+  close: ['Close', 'Cerrar'],
+  helpSource: ['Select an installed font, open a font file, or choose Draw.', 'Elegí una fuente instalada, abrí un archivo de fuente o seleccioná Dibujar.'],
+  helpStyle: ['Apply a style preset and use the Pixel editor tab to adjust individual glyphs and advances.', 'Elegí un preset y usá la pestaña Editor de píxeles para retocar glifos y cambiar su avance.'],
+  helpCopy: ['Choose Copy Sprite Font, paste it in your Construct 3 layout and click to place it.', 'Elegí Copiar Sprite Font, pegala en el layout de Construct 3 y hacé clic para ubicarla.'],
+  highContrast: ['High contrast', 'Alto contraste'],
+  keyboardTabs: ['Use the arrow keys to switch between the atlas and the pixel editor tabs.', 'Usá las flechas para cambiar entre las pestañas del atlas y el editor de píxeles.'],
+  viewSource: ['View source on GitHub', 'Ver código en GitHub'],
+  newProjectNotice: ['Starting a new project replaces the current one. Export it first if you want to keep a copy.', 'Al crear un proyecto nuevo se reemplaza el actual. Exportalo antes si querés conservar una copia.'],
+  cancel: ['Cancel', 'Cancelar'],
   language: ['Language', 'Idioma'],
   browserLanguage: ['Browser default', 'Idioma del navegador'],
   settings: ['Settings', 'Configuración'],
@@ -1680,8 +2163,8 @@ const translations = {
   outlineColor: ['Outline color', 'Color del contorno'],
   shadow: ['Drop shadow', 'Sombra paralela'],
   enableShadow: ['Enable shadow', 'Activar sombra'],
-  shadowX: ['Horizontal offset (px)', 'Distancia horizontal (px)'],
-  shadowY: ['Vertical offset (px)', 'Distancia vertical (px)'],
+  shadowX: ['Offset X (px)', 'Desplazamiento X (px)'],
+  shadowY: ['Offset Y (px)', 'Desplazamiento Y (px)'],
   blur: ['Blur (px)', 'Desenfoque (px)'],
   opacity: ['Opacity (%)', 'Opacidad (%)'],
   shadowColor: ['Shadow color', 'Color de la sombra'],
@@ -1772,6 +2255,69 @@ function readLanguage() {
   }
 }
 
+const iconPaths = {
+  help: 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9 9a3 3 0 1 1 4.5 2.6c-1 .6-1.5 1.2-1.5 2.4m0 3h.01',
+  access: 'M13.5 4a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0ZM4 8l8 1 8-1m-8 1v5m0 0-3 7m3-7 3 7',
+  globe: 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM3 12h18M12 3c5 5 5 13 0 18-5-5-5-13 0-18Z',
+  home: 'm3 11 9-8 9 8m-2-2v11h-5v-6h-4v6H5V9',
+  plus: 'M12 4v16M4 12h16',
+  folder: 'M3 6a1 1 0 0 1 1-1h5l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z',
+  export: 'M12 3v12m-4-4 4 4 4-4M4 14v5a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5',
+  download: 'M12 3v12m-4-4 4 4 4-4M4 14v5a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5',
+  settings: 'm10 2-.7 2.5-2 .9-2.4-1.1-2 2 1.1 2.4-.9 2L1 11v2l2.1.6.9 2-1.1 2.4 2 2 2.4-1.1 2 .9L10 22h3l.7-2.2 2-.9 2.4 1.1 2-2-1.1-2.4.9-2 2.1-.6v-2l-2.1-.3-.9-2 1.1-2.4-2-2-2.4 1.1-2-.9L13 2Zm5 10a3.5 3.5 0 1 1-7 0 3.5 3.5 0 1 1 7 0Z',
+  info: 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM12 10v6m0-9h.01',
+  gamepad: 'M7 7h10c3.5 0 5 3.8 5 7 0 3.5-2 5-4.5 2.6L16 15H8l-1.5 1.6C4 19 2 17.5 2 14c0-3.2 1.5-7 5-7Zm-3 4h6m-3-3v6m9-4h.01m3 3h.01',
+  layers: 'm12 3 10 5-10 5L2 8Zm-10 9 10 5 10-5m-20 4 10 5 10-5',
+  font: 'm2 18 5-12h2l5 12M4 14h8m4-2c1.5-2 5-2 5 1v5m0-3c-8-2-6 5 0 2',
+  pencil: 'm4 16 12-12a2 2 0 0 1 3 0l1 1a2 2 0 0 1 0 3L8 20l-5 1Zm10-10 4 4',
+  monitor: 'M4 4h16a1 1 0 0 1 1 1v11H3V5a1 1 0 0 1 1-1Zm3 16h10m-5-4v4',
+  resize: 'M4 9V4h5m6 0h5v5m0 6v5h-5m-6 0H4v-5m2 3 12-12',
+  grid: 'M3 3h7v7H3Zm11 0h7v7h-7ZM3 14h7v7H3Zm11 0h7v7h-7Z',
+  reset: 'M5 8a8 8 0 1 1 0 8M4 4v5h5',
+  spacing: 'M3 4v16M21 4v16M6 12h12m-8-4-4 4 4 4m4-8 4 4-4 4',
+  eye: 'M2 12c3-5 6-7 10-7s7 2 10 7c-3 5-6 7-10 7S5 17 2 12Zm13 0a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z',
+  expand: 'M4 9V4h5m6 0h5v5m0 6v5h-5m-6 0H4v-5',
+  palette: 'M12 3a9 9 0 0 0 0 18h1a2 2 0 0 0 1-3.7c-.7-.5-.4-1.7.5-1.7H17A4 4 0 0 0 21 12c0-5-4-9-9-9ZM7 12h.01m1-4h.01m4-2h.01m4 2h.01',
+  copy: 'M8 8h12v13H8ZM16 4H4v13',
+  image: 'M3 4h18v16H3Zm0 12 5-5 4 4 3-3 6 5m-7-9h.01',
+  close: 'm5 5 14 14M19 5 5 19',
+};
+
+function paintInterfaceIcons() {
+  for (const canvas of document.querySelectorAll('[data-icon]')) {
+    canvas.setAttribute('aria-hidden', 'true');
+    canvas.width = canvas.height = 48;
+    const context = canvas.getContext('2d');
+    context.scale(2, 2);
+    context.strokeStyle = getComputedStyle(canvas).color;
+    context.lineWidth = 1.75;
+    context.lineCap = 'round';
+    context.lineJoin = 'round';
+    context.stroke(new Path2D(iconPaths[canvas.dataset.icon]));
+  }
+}
+
+function updateContrast() {
+  const enabled = byId('highContrast').checked;
+  document.body.classList.toggle('highContrast', enabled);
+  paintInterfaceIcons();
+}
+
+function startNewProject() {
+  fontLayers.clear();
+  applyProject({
+    fields: {...fieldDefaults, sample: t('exampleSample')}, mode: 'font', selectedGlyph: 'A',
+    drawings: new Map(), overrides: new Map(), fontEdits: new Map(), font: null,
+  }, {builtin: 'consolas'});
+  defaultSample = fieldValue('sample');
+  byId('spriteFontHint').dataset.t = 'pasteSpriteFontHelp';
+  byId('spriteFontHint').textContent = t('pasteSpriteFontHelp');
+  byId('spriteFontHint').classList.remove('error');
+  selectPreviewTab('atlasTab');
+  status();
+  markChanged();
+}
+
 function localize() {
   const preference = fieldValue('language');
   const locale = (navigator.languages?.[0] ?? navigator.language ?? 'en').split('-')[0].toLowerCase();
@@ -1780,6 +2326,7 @@ function localize() {
   for (const node of document.querySelectorAll('[data-t]')) node.textContent = t(node.dataset.t);
   for (const node of document.querySelectorAll('[data-a]')) node.setAttribute('aria-label', t(node.dataset.a));
   for (const node of document.querySelectorAll('[data-p]')) node.placeholder = t(node.dataset.p);
+  for (const node of document.querySelectorAll('[data-tip]')) node.title = t(node.dataset.tip);
   for (const {id, name} of stylePresets) {
     const button = presetButtons.get(id);
     button.title = name[language === 'es' ? 1 : 0];
@@ -1801,6 +2348,43 @@ byId('language').onchange = () => {
   localize();
 };
 window.addEventListener('languagechange', localize);
+for (const trigger of document.querySelectorAll('[data-dialog]')) {
+  trigger.onclick = () => byId(trigger.dataset.dialog).showModal();
+}
+for (const closer of document.querySelectorAll('[data-close-dialog]')) {
+  closer.onclick = () => closer.closest('dialog').close();
+}
+try { byId('highContrast').checked = localStorage.getItem('spritefont-studio-contrast') === 'high'; } catch { /* Keep browser defaults. */ }
+byId('highContrast').onchange = () => {
+  try { localStorage.setItem('spritefont-studio-contrast', byId('highContrast').checked ? 'high' : 'normal'); } catch { /* Keep this session’s choice. */ }
+  updateContrast();
+};
+byId('openProjectShortcut').onclick = () => byId('projectFile').click();
+byId('exportProjectShortcut').onclick = exportProject;
+byId('confirmNewProject').onclick = () => {
+  byId('newDialog').close();
+  startNewProject();
+  byId('workspace').focus();
+};
+byId('atlasTab').onclick = () => selectPreviewTab('atlasTab');
+byId('editorTab').onclick = () => selectPreviewTab('editorTab');
+byId('previewTabs').onkeydown = event => {
+  const first = event.key === 'Home';
+  const last = event.key === 'End';
+  if (!first && !last && !['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+  event.preventDefault();
+  const id = first || (!last && event.target.id === 'editorTab') ? 'atlasTab' : 'editorTab';
+  selectPreviewTab(id);
+  byId(id).focus();
+};
+byId('expandAtlas').onclick = () => {
+  const expanded = byId('atlasArea').classList.toggle('expanded');
+  byId('expandAtlas').setAttribute('aria-pressed', String(expanded));
+};
+byId('atlasGrid').onclick = () => {
+  const solid = byId('atlasArea').classList.toggle('solid');
+  byId('atlasGrid').setAttribute('aria-pressed', String(!solid));
+};
 byId('fontMode').onclick = () => changeMode('font');
 byId('drawMode').onclick = () => changeMode('draw');
 byId('stylePresets').onclick = event => {
@@ -1860,7 +2444,6 @@ byId('projectFile').onchange = importProject;
 document.querySelectorAll('[data-copy]').forEach(button => {
   button.onclick = () => copyText(button.dataset.copy);
 });
-byId('editorPanel').ontoggle = drawGrid;
 byId('glyphs').onclick = event => selectGlyph(event.target.closest('button')?.dataset.char);
 byId('selectedGlyph').onchange = event => selectGlyph(event.target.value);
 byId('glyphAdvance').onchange = event => {
@@ -1955,6 +2538,7 @@ pixelCanvas.onkeydown = event => {
   }
 };
 renderPresetBar();
+updateContrast();
 localize();
 restoreBrowserProject();
 </script>
