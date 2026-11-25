@@ -64,7 +64,7 @@ canvas{image-rendering:pixelated;display:block}
 .output button{min-height:29px;padding:3px 8px}
 .widths .output input{font-family:var(--mono)}
 #status{min-height:23px;font-size:12px;color:#c7b7ff}
-#status.error,#buildNote.error{color:#ffadb9}
+#status.error,#buildNote.error,#spriteFontHint.error{color:#ffadb9}
 #fontHint{display:block;min-height:18px}
 [hidden]{display:none!important}
 @media(max-width:1060px){.layout{grid-template-columns:minmax(240px,.8fr) minmax(320px,1.3fr)} .exports{grid-column:1/-1}.exports .body{grid-template-columns:1fr 1fr}.exports .actions,.exports .instructions{grid-column:1/-1}}
@@ -221,8 +221,10 @@ header .mark{flex:none}
   <div class="cardHead"><h2 id="exportTitle" data-t="exports">Export to Construct 3</h2></div>
   <div class="body">
     <div class="section actions">
+      <button type="button" class="primary" id="copySpriteFont" data-output data-t="copySpriteFont">Copy Sprite Font</button>
+      <small id="spriteFontHint" role="status" data-t="pasteSpriteFontHelp">Paste into a Construct 3 layout with Ctrl+V.</small>
       <div class="two">
-        <button type="button" class="primary" id="copyImage" data-output data-t="copyImage">Copy image</button>
+        <button type="button" id="copyImage" data-output data-t="copyImage">Copy image</button>
         <button type="button" id="download" data-output data-t="downloadPng">Download PNG</button>
       </div>
     </div>
@@ -791,8 +793,12 @@ function updateZoom() {
   atlas.style.height = atlas.height * zoom + 'px';
 }
 
+function sampleText() {
+  return fieldValue('sample').slice(0, 300).normalize('NFC');
+}
+
 function renderSample() {
-  const sample = fieldValue('sample').slice(0, 300).normalize('NFC');
+  const sample = sampleText();
   if (!layout || !sample) {
     sampleCanvas.width = sampleCanvas.height = 1;
     sampleCanvas.style.removeProperty('width');
@@ -1511,6 +1517,100 @@ function pngBlob() {
   });
 }
 
+function spriteFontClipboard(atlasPng, text) {
+  const {width, height, widths} = layout;
+  const [source, extra] = crypto.getRandomValues(new Uint32Array(2));
+  const name = 'SpriteFontStudio_' + source.toString(36);
+  const textWidth = Array.from(text).reduce((total, char) => total + (widths.get(char) ?? width), 0);
+  return {
+    'is-c3-clipboard-data': true,
+    type: 'world-instances',
+    items: [{
+      type: name,
+      properties: {
+        text,
+        'enable-bbcode': false,
+        'character-width': width,
+        'character-height': height,
+        'character-set': fieldValue('outChars'),
+        'spacing-data': fieldValue('outSpacing'),
+        scale: 1,
+        'character-spacing': 0,
+        'line-height': 0,
+        'horizontal-alignment': 'left',
+        'vertical-alignment': 'top',
+        wrapping: 'word',
+        'initially-visible': true,
+        origin: 'top-left',
+        'read-aloud': false,
+      },
+      tags: '',
+      instanceVariables: {},
+      behaviors: {},
+      materialSurfaceType: 'smooth',
+      instanceFolderItem: {sid: source * 65536 + (extra & 65535), expanded: true},
+      showing: true,
+      locked: false,
+      world: {
+        x: 0, y: 0, width: Math.max(width, textWidth), height,
+        originX: 0, originY: 0, color: [1, 1, 1, 1], z: 0, angle: 0,
+      },
+    }],
+    'object-types': [{
+      name,
+      'plugin-id': 'Spritefont2',
+      isGlobal: false,
+      editorNewInstanceIsReplica: true,
+      instanceVariables: [],
+      behaviorTypes: [],
+      effectTypes: [],
+      image: {
+        width: atlas.width, height: atlas.height, originX: .5, originY: .5, originalSource: '',
+        exportFormat: 'lossless', exportQuality: .8, fileType: 'image/png', imageDataIndex: 0,
+        useCollisionPoly: true, tag: '',
+      },
+    }],
+    '3d-models': [],
+    'project-uid': source.toString(36) + extra.toString(36),
+    imageData: [atlasPng],
+  };
+}
+
+async function writeClipboardText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const previousFocus = document.activeElement;
+    const input = document.createElement('textarea');
+    input.value = text;
+    input.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
+    document.body.append(input);
+    try {
+      input.select();
+      if (!document.execCommand('copy')) throw new Error('Clipboard');
+    } finally {
+      input.remove();
+      previousFocus?.focus();
+    }
+  }
+}
+
+async function copySpriteFont() {
+  if (!layout) return;
+  const hint = byId('spriteFontHint');
+  let feedback = 'spriteFontCopied';
+  try {
+    const png = atlas.toDataURL('image/png');
+    if (!png.startsWith('data:image/png;base64,')) throw new Error('PNG');
+    await writeClipboardText(JSON.stringify(spriteFontClipboard(png, sampleText())));
+  } catch {
+    feedback = 'spriteFontCopyFailed';
+  }
+  hint.dataset.t = feedback;
+  hint.textContent = t(feedback);
+  hint.classList.toggle('error', feedback === 'spriteFontCopyFailed');
+}
+
 async function copyImage() {
   try {
     if (!navigator.clipboard?.write || !window.ClipboardItem) throw new Error('Clipboard');
@@ -1610,6 +1710,8 @@ const translations = {
   sampleText: ['Sample text', 'Texto de prueba'],
   sampleCanvas: ['Sample text rendered with the atlas', 'Texto de prueba renderizado con el atlas'],
   exports: ['Export to Construct 3', 'Exportar a Construct 3'],
+  copySpriteFont: ['Copy Sprite Font', 'Copiar Sprite Font'],
+  pasteSpriteFontHelp: ['Paste into a Construct 3 layout with Ctrl+V.', 'Pegala con Ctrl+V en un layout de Construct 3.'],
   copyImage: ['Copy image', 'Copiar imagen'],
   downloadPng: ['Download PNG', 'Descargar PNG'],
   copyWidth: ['Copy width', 'Copiar ancho'],
@@ -1643,6 +1745,8 @@ const translations = {
   fontPermission: ['Check the browser’s permission for local fonts or open a font file.', 'Revisá el permiso de fuentes locales del navegador o abrí un archivo.'],
   fontFailed: ['This font couldn’t be loaded. Try another font or open its file directly.', 'No se pudo cargar esta fuente. Probá con otra o abrí el archivo directamente.'],
   imageCopied: ['Image copied. Paste it into Construct 3’s image editor.', 'Imagen copiada. Pegala en el editor de imagen de Construct 3.'],
+  spriteFontCopied: ['Sprite Font copied. Paste it into a Construct 3 layout with Ctrl+V and click to place it.', 'Sprite Font copiada. Pegala con Ctrl+V en un layout de Construct 3 y hacé clic para ubicarla.'],
+  spriteFontCopyFailed: ['Clipboard access failed. Allow access and try again, or download the PNG.', 'No se pudo acceder al portapapeles. Habilitá el permiso y volvé a intentar, o descargá el PNG.'],
   imageCopyFailed: ['The browser couldn’t copy the image. Download the PNG and import it into Construct 3.', 'El navegador no pudo copiar la imagen. Descargá el PNG e importalo en Construct 3.'],
   textCopied: ['Copied to the clipboard.', 'Copiado al portapapeles.'],
   textSelected: ['Text selected. Press Ctrl+C to copy it.', 'Texto seleccionado. Copialo con Ctrl+C.'],
@@ -1747,6 +1851,7 @@ for (const id of Object.keys(initialSettings)) byId(id).addEventListener('change
   scheduleBuild();
 });
 new ResizeObserver(renderSample).observe(byId('sampleArea'), {box: 'border-box'});
+byId('copySpriteFont').onclick = copySpriteFont;
 byId('copyImage').onclick = copyImage;
 byId('download').onclick = downloadImage;
 byId('exportProject').onclick = exportProject;
