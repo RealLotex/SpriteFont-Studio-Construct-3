@@ -1,0 +1,24 @@
+SPRITEFONT STUDIO · Windows
+
+Sitio público: https://spritefont-studio.rosichmarcos.chatgpt.site
+
+1. Ejecutá Abrir-en-Windows.cmd y dejá abierta la consola mientras trabajás.
+   Si el navegador no se abre, visitá http://127.0.0.1:47831/ en Edge o
+   Chrome de escritorio. También podés abrir SpriteFont-Studio.html.
+2. Elegí una fuente instalada o abrí un archivo TTF, OTF, WOFF o WOFF2.
+   El editor de píxeles permite retocar los glifos generados o dibujar desde
+   cero. Podés pintar, borrar, deshacer y restaurar el original.
+3. Ajustá el tamaño de celda, las columnas y el juego de caracteres. El tamaño
+   mínimo de fuente admite hasta 512 px y amplía la celda si hace falta.
+   El avance individual del editor tiene prioridad sobre el fijo o proporcional.
+4. En Estilo, ajustá el color de relleno, el grosor del contorno y la distancia,
+   el desenfoque y la opacidad de la sombra. Cada capa admite un gradiente
+   independiente con dos colores y un ángulo.
+5. Exportá el proyecto editable para continuar en otra PC. El JSON incluye
+   los glifos rasterizados y se puede abrir sin tener la fuente instalada.
+6. En Construct 3, pegá o importá el PNG en el editor de imagen de Sprite Font.
+   En sus propiedades, pegá Character width, Character height, Character set
+   y Spacing data. Poné Character spacing en 0.
+
+El sitio detecta el español del navegador y usa inglés para otros idiomas.
+Podés cambiarlo en el selector de idioma.

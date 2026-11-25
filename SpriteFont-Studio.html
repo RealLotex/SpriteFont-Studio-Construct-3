@@ -1,0 +1,1722 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SpriteFont Studio</title>
+<style>
+:root{color-scheme:dark;--bg:#11111a;--panel:#1a1a26;--line:#303044;--ink:#f5f3ff;--muted:#aca9c0;--accent:#b29aff;--fill:#a78bfa;--field:#13131e;--mono:Consolas,"Liberation Mono",monospace}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 50% -320px,#332650 0,transparent 660px),var(--bg);color:var(--ink);font:14px/1.5 system-ui,sans-serif}
+main{max-width:1510px;margin:auto;padding:34px clamp(16px,4vw,58px) 42px}
+header{display:flex;gap:15px;align-items:center;margin-bottom:25px}
+.mark{display:grid;place-items:center;width:48px;height:48px;border-radius:13px;background:var(--accent);color:#231741;font:bold 20px var(--mono)}
+h1,h2,h3,p{margin:0}
+h1{font-size:clamp(24px,4vw,34px);letter-spacing:-.045em;line-height:1.15}
+h2{font-size:16px;letter-spacing:-.01em}
+h3{font-size:13px}
+header p,.muted,small{color:var(--muted)}
+header p{margin-top:4px}
+.layout{display:grid;grid-template-columns:minmax(255px,.95fr) minmax(330px,1.65fr) minmax(238px,.92fr);gap:16px;align-items:start}
+.card{min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.cardHead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 16px;border-bottom:1px solid var(--line)}
+.body{padding:16px;display:grid;gap:15px}
+.section{display:grid;gap:8px}
+.divided{border-top:1px solid var(--line);padding-top:14px}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.between{justify-content:space-between}
+.two,.three{display:grid;gap:8px}
+.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+label{display:grid;gap:4px;font-weight:600;font-size:12px}
+label.check{display:flex;align-items:center;font-size:13px;gap:8px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:#27263a;border:1px solid #3a3851;min-height:35px;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:680;cursor:pointer}
+button:hover:enabled{border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--fill);color:#180e30;border-color:transparent}
+button[aria-pressed="true"]{background:#383052;border-color:#8974cf;color:#e2d7ff}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,canvas:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input:not([type=checkbox]):not([type=color]),select,textarea{width:100%;min-width:0;border:1px solid var(--line);background:var(--field);border-radius:8px;padding:7px 8px}
+textarea{min-height:61px;resize:vertical;font:12px/1.55 var(--mono)}
+input[type=color]{width:35px;height:30px;padding:2px;background:var(--field);border:1px solid var(--line);border-radius:6px}
+input[type=checkbox]{accent-color:var(--fill)}
+.switch{display:grid;grid-template-columns:1fr 1fr;gap:4px;border:1px solid var(--line);background:var(--field);border-radius:10px;padding:4px}
+.switch button{border-color:transparent;background:transparent;padding-inline:5px}
+.switch button[aria-pressed="true"]{background:#3a3055;border-color:#534478}
+.meta{color:#d8c9ff;font:12px var(--mono);white-space:nowrap}
+.ground{--square:#28283b;background-color:#191927;background-image:conic-gradient(var(--square) 25%,transparent 0 50%,var(--square) 0 75%,transparent 0);background-size:16px 16px;border:1px solid var(--line);border-radius:10px}
+#atlasArea{min-height:280px;max-height:500px;overflow:auto;padding:14px;display:grid;justify-content:safe center;align-content:safe center}
+canvas{image-rendering:pixelated;display:block}
+#sampleArea{max-height:300px;overflow:auto;padding:12px;min-height:62px}
+#pixelArea{display:grid;place-items:center;padding:12px;min-height:150px}
+#pixelCanvas{touch-action:none;cursor:crosshair;max-width:100%}
+#glyphs{display:grid;grid-template-columns:repeat(auto-fill,minmax(34px,1fr));gap:4px;max-height:118px;overflow:auto;padding:3px}
+#glyphs button{font:13px var(--mono);padding:3px;min-height:30px}
+#glyphs button.painted{box-shadow:inset 0 -2px #8b73d5}
+.output{display:grid;gap:5px}
+.output textarea{min-height:65px}
+.output button{min-height:29px;padding:3px 8px}
+.widths .output input{font-family:var(--mono)}
+#status{min-height:23px;font-size:12px;color:#c7b7ff}
+#status.error,#buildNote.error{color:#ffadb9}
+#fontHint{display:block;min-height:18px}
+[hidden]{display:none!important}
+@media(max-width:1060px){.layout{grid-template-columns:minmax(240px,.8fr) minmax(320px,1.3fr)} .exports{grid-column:1/-1}.exports .body{grid-template-columns:1fr 1fr}.exports .actions,.exports .instructions{grid-column:1/-1}}
+@media(max-width:650px){main{padding-top:20px}.layout{grid-template-columns:minmax(0,1fr)}.exports .body{grid-template-columns:1fr}.exports .actions,.exports .instructions{grid-column:auto}}
+.language{margin-inline-start:auto;min-width:112px}
+header .mark{flex:none}
+#pixelArea{justify-content:safe center;align-items:safe start;max-height:425px;overflow:auto}
+#pixelCanvas{max-width:none;flex:none}
+#glyphs button.custom{color:#dbcaff;border-color:#78659f}
+.effect,#editorPanel{background:var(--field);border:1px solid var(--line);border-radius:10px}
+.effect summary,#editorPanel summary{padding:9px 11px;cursor:pointer;font-size:13px;font-weight:700}
+.effect[open] summary,#editorPanel[open] summary{border-bottom:1px solid var(--line)}
+.effectBody,.editorBody{padding:11px}
+.paintTop{justify-content:space-between}
+.gradientFields{align-items:end}
+.projectActions{grid-column:1/-1}
+#status:empty{display:none}
+@media(max-width:460px){header{flex-wrap:wrap}.language{margin-inline-start:0}}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="mark" aria-hidden="true">Aa</div>
+  <div><h1>SpriteFont Studio</h1><p data-t="tagline">Sprite font generator and editor for Construct 3</p></div>
+  <label class="language"><span data-t="language">Language</span><select id="language">
+    <option value="auto" data-t="browserLanguage">Browser default</option><option value="en">English</option><option value="es">Español</option>
+  </select></label>
+</header>
+<div class="layout">
+<section class="card" aria-labelledby="configTitle">
+  <div class="cardHead"><h2 id="configTitle" data-t="settings">Settings</h2></div>
+  <div class="body">
+    <div class="switch" role="group" data-a="glyphSource">
+      <button type="button" id="fontMode" aria-pressed="true" data-t="fromFont">From a font</button>
+      <button type="button" id="drawMode" aria-pressed="false" data-t="draw">Draw</button>
+    </div>
+    <div id="fontSettings" class="section">
+      <label><span data-t="font">Font</span><select id="fonts">
+        <option value="consolas">Consolas</option><option value="courier">Courier New</option>
+        <option value="system" data-t="browserMono">Browser monospace</option>
+      </select></label>
+      <div class="row">
+        <button type="button" id="scan" data-t="installed">Installed fonts</button>
+        <button type="button" id="openFont" data-t="openFont">Open font file…</button>
+        <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2" hidden>
+      </div>
+      <small id="fontHint"></small>
+      <div id="fontSizing" class="section">
+        <div class="two">
+          <label><span data-t="minSize">Min. font size (px)</span><input id="minFontSize" type="number" min="1" max="512" value="1"></label>
+          <label><span data-t="maxSize">Max. font size (px)</span><input id="fontSize" type="number" min="1" max="512" data-p="cellHeight"></label>
+        </div>
+        <label><span data-t="offset">Vertical offset (px)</span><input id="offset" type="number" min="-512" max="512" value="0"></label>
+        <label class="check"><input type="checkbox" id="hard" checked><span data-t="hard">Hard edges</span></label>
+      </div>
+    </div>
+    <div class="section divided">
+      <div class="three">
+        <label><span data-t="width">Width (px)</span><input id="width" type="number" min="1" max="512" value="16"></label>
+        <label><span data-t="height">Height (px)</span><input id="height" type="number" min="1" max="512" value="16"></label>
+        <label><span data-t="columns">Columns</span><input id="columns" type="number" min="1" max="128" value="8"></label>
+      </div>
+      <div class="row" role="group" data-a="cellSizes">
+        <button type="button" data-size="16">16 px</button><button type="button" data-size="24">24 px</button>
+        <button type="button" data-size="32">32 px</button><button type="button" data-size="48">48 px</button>
+        <button type="button" data-size="64">64 px</button>
+      </div>
+      <label><span data-t="charset">Character set</span><textarea id="charset" maxlength="262144" spellcheck="false"></textarea></label>
+      <div class="row between"><small id="charCount"></small><button type="button" id="preset" data-t="preset">Restore example</button></div>
+    </div>
+    <div class="section divided">
+      <label><span data-t="advance">Advance</span><select id="spacing">
+        <option value="fixed" data-t="fixed">Fixed · monospace</option>
+        <option value="auto" data-t="proportional">Proportional · based on glyph</option>
+      </select></label>
+      <div class="two" id="autoSettings" hidden>
+        <label><span data-t="gap">Right gap (px)</span><input id="gap" type="number" min="0" max="512" value="1"></label>
+        <label><span data-t="spaceWidth">Space width (px)</span><input id="space" type="number" min="1" max="512" value="8"></label>
+      </div>
+    </div>
+    <div class="section divided" aria-labelledby="styleTitle">
+      <h3 id="styleTitle" data-t="style">Style</h3>
+      <div class="paint section" id="fillPaint"></div>
+      <details class="effect" id="outlinePanel">
+        <summary data-t="outline">Outline</summary>
+        <div class="section effectBody">
+          <label class="check"><input type="checkbox" id="outlineOn"><span data-t="enableOutline">Enable outline</span></label>
+          <label><span data-t="thickness">Thickness (px)</span><input id="outlineSize" type="number" min="1" max="32" value="1"></label>
+          <div class="paint section" id="outlinePaint"></div>
+        </div>
+      </details>
+      <details class="effect" id="shadowPanel">
+        <summary data-t="shadow">Drop shadow</summary>
+        <div class="section effectBody">
+          <label class="check"><input type="checkbox" id="shadowOn"><span data-t="enableShadow">Enable shadow</span></label>
+          <div class="two">
+            <label><span data-t="shadowX">Horizontal offset (px)</span><input id="shadowX" type="number" min="-64" max="64" value="2"></label>
+            <label><span data-t="shadowY">Vertical offset (px)</span><input id="shadowY" type="number" min="-64" max="64" value="2"></label>
+            <label><span data-t="blur">Blur (px)</span><input id="shadowBlur" type="number" min="0" max="32" value="0"></label>
+            <label><span data-t="opacity">Opacity (%)</span><input id="shadowOpacity" type="number" min="0" max="100" value="60"></label>
+          </div>
+          <div class="paint section" id="shadowPaint"></div>
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+<section class="card" aria-labelledby="workTitle">
+  <div class="cardHead"><h2 id="workTitle" data-t="preview">Preview</h2><span class="meta" id="atlasMeta"></span></div>
+  <div class="body">
+    <details id="editorPanel" class="section" open>
+      <summary id="editorTitle" data-t="editor">Pixel editor</summary>
+      <div id="drawSettings" class="section editorBody" aria-labelledby="editorTitle">
+        <div class="two">
+          <label><span data-t="character">Character</span><select id="selectedGlyph"></select></label>
+          <label><span data-t="pixelZoom">Editor zoom</span><select id="pixelZoom">
+            <option value="0" data-t="fit">Fit</option><option value="2">2×</option>
+            <option value="4">4×</option><option value="8">8×</option><option value="16">16×</option>
+          </select></label>
+        </div>
+        <div id="glyphs" role="group" data-a="editCharacters"></div>
+        <div class="row" role="group" data-a="drawingTools">
+          <button type="button" id="pencil" aria-pressed="true" data-t="pencil">Pencil</button>
+          <button type="button" id="eraser" aria-pressed="false" data-t="eraser">Eraser</button>
+          <button type="button" id="undo" disabled data-t="undo">Undo</button>
+          <button type="button" id="clear" data-t="clear">Clear glyph</button>
+          <button type="button" id="resetGlyph" data-t="resetGlyph">Restore original</button>
+        </div>
+        <div id="pixelArea" class="ground"><canvas id="pixelCanvas" tabindex="0" data-a="grid"></canvas></div>
+        <small id="editorHint"></small>
+        <div class="section divided">
+          <label><span data-t="customAdvance">Character advance (px)</span><input id="glyphAdvance" type="number" min="1" max="512" step="1" inputmode="numeric"></label>
+          <div class="row between"><small id="advanceHint"></small><button type="button" id="resetAdvance" data-t="resetAdvance">Use calculated width</button></div>
+        </div>
+      </div>
+    </details>
+    <section class="section" aria-labelledby="atlasTitle">
+      <div class="row between"><h3 id="atlasTitle">Atlas</h3><label for="zoom"><span data-t="zoom">Zoom</span><select id="zoom"><option value="1">1×</option><option value="2" selected>2×</option><option value="3">3×</option><option value="4">4×</option></select></label></div>
+      <div id="atlasArea" class="ground"><canvas id="atlas" data-a="atlas"></canvas></div>
+      <small id="buildNote"></small>
+    </section>
+    <section class="section divided">
+      <label><span data-t="sampleText">Sample text</span><input id="sample" maxlength="300" spellcheck="false"></label>
+      <div id="sampleArea" class="ground"><canvas id="sampleCanvas" data-a="sampleCanvas"></canvas></div>
+    </section>
+  </div>
+</section>
+<section class="card exports" aria-labelledby="exportTitle">
+  <div class="cardHead"><h2 id="exportTitle" data-t="exports">Export to Construct 3</h2></div>
+  <div class="body">
+    <div class="section actions">
+      <div class="two">
+        <button type="button" class="primary" id="copyImage" data-output data-t="copyImage">Copy image</button>
+        <button type="button" id="download" data-output data-t="downloadPng">Download PNG</button>
+      </div>
+    </div>
+    <div class="two widths">
+      <div class="output"><label>Character width<input id="outWidth" readonly></label><button type="button" data-output data-copy="outWidth" data-t="copyWidth">Copy width</button></div>
+      <div class="output"><label>Character height<input id="outHeight" readonly></label><button type="button" data-output data-copy="outHeight" data-t="copyHeight">Copy height</button></div>
+    </div>
+    <div class="output"><label>Character set<textarea id="outChars" readonly spellcheck="false"></textarea></label><button type="button" data-output data-copy="outChars" data-t="copyChars">Copy characters</button></div>
+    <div class="output"><label>Spacing data<textarea id="outSpacing" readonly spellcheck="false"></textarea></label><button type="button" data-output data-copy="outSpacing" data-t="copyJson">Copy JSON</button></div>
+    <small class="instructions" data-t="constructHelp">Import or paste the PNG into the Sprite Font object's image editor. Paste these four properties and set Character spacing to 0.</small>
+    <div class="section divided projectActions" aria-labelledby="projectTitle">
+      <h3 id="projectTitle" data-t="project">Editable project</h3>
+      <div class="two">
+        <button type="button" id="exportProject" data-t="exportProject">Export project</button>
+        <button type="button" id="importProject" data-t="importProject">Import project…</button>
+        <input type="file" id="projectFile" accept=".json,.spritefont,application/json" hidden>
+      </div>
+      <div id="status" role="status" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+</div>
+</main>
+<script>
+'use strict';
+
+const EXAMPLE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,;:?!-_~#"\'&()[]|`\\/@°+=*$£€<>';
+const byId = id => document.getElementById(id);
+const GRID = 1024;
+const MAX_CHARS = 512;
+const MAX_ATLAS = 4096;
+const MAX_PIXELS = MAX_ATLAS ** 2;
+const MAX_EDIT_PIXELS = 4194304;
+const atlas = byId('atlas');
+const atlasContext = atlas.getContext('2d');
+const pixelCanvas = byId('pixelCanvas');
+const pixelContext = pixelCanvas.getContext('2d');
+const sampleCanvas = byId('sampleCanvas');
+const sampleContext = sampleCanvas.getContext('2d');
+const glyphSurface = document.createElement('canvas');
+const glyphContext = glyphSurface.getContext('2d', {willReadFrequently: true});
+const initialSettings = {
+  width: 16, height: 16, columns: 8, minFontSize: 1, fontSize: 16, offset: 0, gap: 1, space: 8,
+  outlineSize: 1, shadowX: 2, shadowY: 2, shadowBlur: 0, shadowOpacity: 60,
+};
+const paints = [
+  {id: 'fill', label: 'fill', start: '#ffffff', end: '#a78bfa'},
+  {id: 'outline', label: 'outlineColor', start: '#22133c', end: '#7753e3'},
+  {id: 'shadow', label: 'shadowColor', start: '#000000', end: '#312051'},
+];
+for (const {id, label, start, end} of paints) {
+  byId(id + 'Paint').innerHTML = `
+    <div class="row paintTop">
+      <label class="row"><span data-t="${label}"></span><input id="${id}Color" type="color" value="${start}"></label>
+      <label class="check"><input id="${id}Gradient" type="checkbox"><span data-t="gradient">Gradient</span></label>
+    </div>
+    <div class="two gradientFields" id="${id}GradientFields" hidden>
+      <label class="row"><span data-t="endColor">End color</span><input id="${id}End" type="color" value="${end}"></label>
+      <label><span data-t="angle">Angle (°)</span><input id="${id}Angle" type="number" min="0" max="359" value="90"></label>
+    </div>`;
+  initialSettings[id + 'Angle'] = 90;
+}
+
+const projectFields = [
+  ...Object.keys(initialSettings), 'charset', 'spacing', 'hard', 'outlineOn', 'shadowOn', 'zoom', 'pixelZoom', 'sample',
+  ...paints.flatMap(({id}) => [id + 'Color', id + 'Gradient', id + 'End']),
+];
+const builtinFonts = new Map([
+  ['consolas', {id: 'consolas', css: '"Consolas", monospace', label: 'Consolas'}],
+  ['courier', {id: 'courier', css: '"Courier New", monospace', label: 'Courier New'}],
+  ['system', {id: 'system', css: 'monospace', label: 'Browser monospace'}],
+]);
+const fonts = new Map(builtinFonts);
+const drawings = new Map();
+const advances = new Map();
+const fontLayers = new Map();
+const history = [];
+let activeFont = fonts.get('consolas');
+let nextFontId = 0;
+let fontRequest = 0;
+let fontLoading = false;
+let mode = 'font';
+let brush = 'pencil';
+let selectedGlyph = 'A';
+let editorCharacters = null;
+let layout;
+let editor;
+let raster;
+let stroke;
+let frame = 0;
+let saveTimer;
+let revision = 0;
+let keyboardCursor = {x: 0, y: 0};
+let language = 'en';
+let message = [];
+let hint = ['fontHelp'];
+let defaultSample;
+let userInteracted = false;
+let importRequest = 0;
+
+byId('charset').value = EXAMPLE;
+const fieldValue = id => byId(id).type === 'checkbox' ? byId(id).checked : byId(id).value;
+const fieldDefaults = Object.fromEntries(projectFields.map(id => [id, fieldValue(id)]));
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+const supportedChar = char => typeof char === 'string' && char.length === 1 && !/[\p{Cc}\p{Cf}\p{Cs}\p{Zl}\p{Zp}]/u.test(char);
+const editLayer = () => {
+  if (mode === 'draw') return drawings;
+  if (!fontLayers.has(activeFont.id)) fontLayers.set(activeFont.id, new Map());
+  return fontLayers.get(activeFont.id);
+};
+
+function integerInput(id) {
+  const input = byId(id);
+  return input.value === '' ? initialSettings[id] : clamp(Math.round(Number(input.value)), Number(input.min), Number(input.max));
+}
+
+function readSettings() {
+  const numeric = Object.fromEntries(Object.keys(initialSettings).map(id => [id, integerInput(id)]));
+  if (!fieldValue('fontSize')) numeric.fontSize = numeric.height;
+  const raw = byId('charset').value;
+  const characters = [...new Set(Array.from(raw.normalize('NFC')).filter(supportedChar))];
+  const colors = Object.fromEntries(paints.map(({id}) => [id, {
+    start: fieldValue(id + 'Color'), end: fieldValue(id + 'End'),
+    gradient: fieldValue(id + 'Gradient'), angle: numeric[id + 'Angle'],
+  }]));
+  return {
+    ...numeric, characters, charset: characters.join(''), normalized: raw !== characters.join(''),
+    proportional: fieldValue('spacing') === 'auto', hard: fieldValue('hard'), colors,
+    outline: fieldValue('outlineOn') ? numeric.outlineSize : 0,
+    shadow: fieldValue('shadowOn') && numeric.shadowOpacity > 0,
+  };
+}
+
+function status(key = '', error = false) {
+  message = [key, error];
+  byId('status').textContent = key ? t(key) : '';
+  byId('status').classList.toggle('error', error);
+}
+
+function setHint(key, values) {
+  hint = [key, values];
+  byId('fontHint').textContent = t(key, values);
+}
+
+function updateChrome() {
+  byId('fontSettings').hidden = mode !== 'font';
+  byId('fontSizing').hidden = Boolean(activeFont.snapshot);
+  byId('fontMode').setAttribute('aria-pressed', String(mode === 'font'));
+  byId('drawMode').setAttribute('aria-pressed', String(mode === 'draw'));
+  byId('autoSettings').hidden = fieldValue('spacing') !== 'auto';
+  for (const {id} of paints) byId(id + 'GradientFields').hidden = !fieldValue(id + 'Gradient');
+}
+
+function scheduleBuild() {
+  document.querySelectorAll('[data-output]').forEach(button => {button.disabled = true;});
+  if (!frame) frame = requestAnimationFrame(build);
+}
+
+function measureFont(size, config) {
+  const font = `${size}px ${activeFont.css}`;
+  glyphContext.font = font;
+  glyphContext.textAlign = 'left';
+  glyphContext.textBaseline = 'alphabetic';
+  let width = 1;
+  let ascent = 0;
+  let descent = 0;
+  for (const char of config.characters) {
+    if (!char.trim()) continue;
+    const metrics = glyphContext.measureText(char);
+    width = Math.max(width, Math.ceil(metrics.actualBoundingBoxLeft) + Math.ceil(metrics.actualBoundingBoxRight));
+    ascent = Math.max(ascent, Math.ceil(metrics.actualBoundingBoxAscent));
+    descent = Math.max(descent, Math.ceil(metrics.actualBoundingBoxDescent));
+  }
+  return {font, size, width, height: Math.max(1, ascent + descent), ascent};
+}
+
+function fitFont(config) {
+  const min = config.minFontSize;
+  for (let size = Math.max(min, config.fontSize); size >= min; size--) {
+    const fit = measureFont(size, config);
+    if (size === min || (fit.width <= config.width && fit.height <= config.height)) return fit;
+  }
+}
+
+function fontMask(char, width, height, font) {
+  if (!char.trim()) return null;
+  glyphContext.clearRect(0, 0, width, height);
+  const metrics = glyphContext.measureText(char);
+  const left = Math.ceil(metrics.actualBoundingBoxLeft);
+  const glyphWidth = left + Math.ceil(metrics.actualBoundingBoxRight);
+  glyphContext.fillText(char, left + Math.floor((width - glyphWidth) / 2), font.baseline);
+  const rgba = glyphContext.getImageData(0, 0, width, height).data;
+  const alpha = new Uint8ClampedArray(width * height);
+  for (let i = 0; i < alpha.length; i++) {
+    const value = rgba[i * 4 + 3];
+    alpha[i] = font.hard ? (value >= 128 ? 255 : 0) : value;
+  }
+  return alpha;
+}
+
+function artwork(config) {
+  if (mode === 'draw') return {width: config.width, height: config.height, glyphs: new Map()};
+  const source = activeFont.snapshot;
+  if (source) return {
+    width: Math.max(config.width, source.width), height: Math.max(config.height, source.height),
+    stride: source.width, glyphs: source.glyphs, size: source.size,
+  };
+  const key = JSON.stringify([activeFont.id, config.charset, config.width, config.height, config.minFontSize, config.fontSize, config.offset, config.hard]);
+  if (raster?.key === key) return raster;
+  const fit = fitFont(config);
+  const width = Math.max(config.width, fit.width);
+  const height = Math.max(config.height, fit.height, config.minFontSize);
+  const baseline = Math.floor((height - fit.height) / 2) + fit.ascent + config.offset;
+  raster = {key, width, height, size: fit.size, fit: {...fit, baseline, hard: config.hard}, glyphs: new Map()};
+  return raster;
+}
+
+function rasterize(art, characters) {
+  if (!art.fit || art.ready) return;
+  glyphSurface.width = art.width;
+  glyphSurface.height = art.height;
+  glyphContext.font = art.fit.font;
+  glyphContext.textAlign = 'left';
+  glyphContext.textBaseline = 'alphabetic';
+  glyphContext.fillStyle = '#ffffff';
+  for (const char of characters) {
+    const mask = fontMask(char, art.width, art.height, art.fit);
+    if (mask) art.glyphs.set(char, mask);
+  }
+  art.ready = true;
+}
+
+function glyphMask(char, art, layer) {
+  const edit = layer.get(char);
+  const base = edit?.clear ? null : art.glyphs.get(char);
+  if (!edit?.pixels.size && (!base || art.stride === undefined || art.stride === art.width)) return base;
+  const mask = new Uint8ClampedArray(art.width * art.height);
+  if (base) {
+    const stride = art.stride ?? art.width;
+    for (let y = 0; y < base.length / stride; y++) mask.set(base.subarray(y * stride, (y + 1) * stride), y * art.width);
+  }
+  if (edit) for (const [point, alpha] of edit.pixels) {
+    const x = point % GRID;
+    const y = Math.floor(point / GRID);
+    if (x < art.width && y < art.height) mask[y * art.width + x] = alpha;
+  }
+  return mask;
+}
+
+function padding(config) {
+  const edge = config.outline;
+  const reach = edge + config.shadowBlur;
+  return {
+    left: config.shadow ? Math.max(edge, reach - config.shadowX) : edge,
+    right: config.shadow ? Math.max(edge, reach + config.shadowX) : edge,
+    top: config.shadow ? Math.max(edge, reach - config.shadowY) : edge,
+    bottom: config.shadow ? Math.max(edge, reach + config.shadowY) : edge,
+  };
+}
+
+function filterAxis(source, width, height, radius, vertical, maximum) {
+  const result = new Uint8ClampedArray(source.length);
+  const length = vertical ? height : width;
+  const lines = vertical ? width : height;
+  const step = vertical ? width : 1;
+  const queue = maximum ? new Uint16Array(length) : null;
+  const diameter = 2 * radius + 1;
+  for (let line = 0; line < lines; line++) {
+    const start = vertical ? line : line * width;
+    let first = 0;
+    let last = 0;
+    let sum = 0;
+    for (let i = 0; i < length + radius; i++) {
+      const index = start + i * step;
+      if (maximum) {
+        if (first < last && queue[first] <= i - diameter) first++;
+        if (i < length) {
+          while (last > first && source[start + queue[last - 1] * step] <= source[index]) last--;
+          queue[last++] = i;
+        }
+      } else {
+        if (i < length) sum += source[index];
+        if (i >= diameter) sum -= source[index - diameter * step];
+      }
+      if (i >= radius) result[index - radius * step] = maximum
+        ? (first < last ? source[start + queue[first] * step] : 0) : sum / diameter;
+    }
+  }
+  return result;
+}
+
+function filterMask(source, width, height, radius, maximum) {
+  if (!radius) return source;
+  return filterAxis(filterAxis(source, width, height, radius, false, maximum), width, height, radius, true, maximum);
+}
+
+function rgb(hex) {
+  return hex.slice(1).match(/../g).map(value => parseInt(value, 16));
+}
+
+function paintMask(image, mask, paint, opacity) {
+  const {data, width, height} = image;
+  const start = rgb(paint.start);
+  const end = rgb(paint.end);
+  const theta = paint.angle * Math.PI / 180;
+  const dx = paint.angle % 180 === 90 ? 0 : Math.cos(theta);
+  const dy = paint.angle % 180 === 0 ? 0 : Math.sin(theta);
+  let min = Infinity;
+  let max = -Infinity;
+  if (paint.gradient) for (let i = 0; i < mask.length; i++) {
+    if (!mask[i]) continue;
+    const position = (i % width) * dx + Math.floor(i / width) * dy;
+    min = Math.min(min, position);
+    max = Math.max(max, position);
+  }
+  for (let i = 0; i < width * height; i++) {
+    if (!mask[i]) continue;
+    const dest = i * 4;
+    const coverage = mask[i] / 255 * opacity;
+    const background = (1 - coverage) * data[dest + 3] / 255;
+    const alpha = coverage + background;
+    const mix = paint.gradient && max > min ? ((i % width) * dx + Math.floor(i / width) * dy - min) / (max - min) : 0;
+    for (let channel = 0; channel < 3; channel++) {
+      const color = start[channel] + (end[channel] - start[channel]) * mix;
+      data[dest + channel] = alpha ? (color * coverage + data[dest + channel] * background) / alpha : 0;
+    }
+    data[dest + 3] = alpha * 255;
+  }
+}
+
+function makeCell(mask, art, config, pad, width, height) {
+  if (!mask?.some(Boolean)) return null;
+  const fill = new Uint8ClampedArray(width * height);
+  for (let y = 0; y < art.height; y++) fill.set(
+    mask.subarray(y * art.width, (y + 1) * art.width), (y + pad.top) * width + pad.left,
+  );
+  const outline = filterMask(fill, width, height, config.outline, true);
+  const image = atlasContext.createImageData(width, height);
+  if (config.shadow) {
+    const soft = filterMask(outline, width, height, config.shadowBlur, false);
+    const shadow = new Uint8ClampedArray(soft.length);
+    for (let y = Math.max(0, -config.shadowY); y < Math.min(height, height - config.shadowY); y++) {
+      const start = Math.max(0, -config.shadowX);
+      const end = Math.min(width, width - config.shadowX);
+      if (start < end) shadow.set(soft.subarray(y * width + start, y * width + end),
+        (y + config.shadowY) * width + start + config.shadowX);
+    }
+    paintMask(image, shadow, config.colors.shadow, config.shadowOpacity / 100);
+  }
+  if (config.outline) paintMask(image, outline, config.colors.outline, 1);
+  paintMask(image, fill, config.colors.fill, 1);
+  let left = width;
+  let right = -1;
+  for (let i = 0; i < fill.length; i++) {
+    if (image.data[i * 4 + 3]) {
+      left = Math.min(left, i % width);
+      right = Math.max(right, i % width);
+    }
+  }
+  return right >= left ? {image, left, right} : null;
+}
+
+function spacingData(widths) {
+  const groups = new Map();
+  for (const [char, width] of widths) groups.set(width, (groups.get(width) || '') + char);
+  return JSON.stringify([...groups].sort((a, b) => a[0] - b[0]));
+}
+
+function build() {
+  frame = 0;
+  const config = readSettings();
+  const {columns, characters} = config;
+  const pending = mode === 'font' && fontLoading;
+  const eligible = characters.length > 0 && characters.length <= MAX_CHARS;
+  const art = !eligible || pending ? null : artwork(config);
+  const pad = padding(config);
+  const rows = Math.ceil(characters.length / columns);
+  const width = (art?.width ?? config.width) + pad.left + pad.right;
+  const height = (art?.height ?? config.height) + pad.top + pad.bottom;
+  const atlasWidth = width * columns;
+  const atlasHeight = height * rows;
+  const valid = eligible && atlasWidth <= MAX_ATLAS && atlasHeight <= MAX_ATLAS && atlasWidth * atlasHeight <= MAX_PIXELS &&
+    (!art || (art.width <= GRID && art.height <= GRID));
+  updateChrome();
+  byId('charCount').textContent = t('count', {n: characters.length});
+  const note = byId('buildNote');
+  note.classList.toggle('error', !valid && !pending);
+  layout = null;
+  editor = valid && !pending ? {art, config, width, layer: editLayer()} : null;
+  if (!editor) {
+    atlas.width = atlas.height = 1;
+    byId('atlasMeta').textContent = '';
+    ['outWidth', 'outHeight', 'outChars', 'outSpacing'].forEach(id => {byId(id).value = '';});
+    note.textContent = t(pending ? 'loading' : characters.length ? 'atlasLimit' : 'empty');
+    updateZoom();
+    renderSample();
+    renderEditor();
+    return;
+  }
+  rasterize(art, characters);
+  if (art.fit) activeFont.lastArt = art;
+  atlas.width = atlasWidth;
+  atlas.height = atlasHeight;
+  const indices = new Map();
+  const widths = new Map();
+  const defaults = new Map();
+  const visibleWidths = new Map();
+  const spaceWidth = Math.min(width, config.space);
+  characters.forEach((char, index) => {
+    const mask = glyphMask(char, art, editor.layer);
+    const cell = makeCell(mask, art, config, pad, width, height);
+    const visibleWidth = cell ? cell.right - cell.left + 1 : 0;
+    const automatic = config.proportional
+      ? (visibleWidth ? Math.min(width, visibleWidth + config.gap) : char.trim() ? width : spaceWidth) : width;
+    const custom = advances.get(char);
+    const advance = custom === undefined ? automatic : Math.min(width, custom);
+    indices.set(char, index);
+    defaults.set(char, automatic);
+    visibleWidths.set(char, visibleWidth);
+    if (config.proportional || custom !== undefined) widths.set(char, advance);
+    if (cell) atlasContext.putImageData(cell.image,
+      index % columns * width - (config.proportional || advance < width ? cell.left : 0),
+      Math.floor(index / columns) * height, cell.left, 0, visibleWidth, height);
+  });
+  if (!indices.has(' ')) {
+    const automatic = config.proportional ? spaceWidth : width;
+    defaults.set(' ', automatic);
+    if (config.proportional || advances.has(' ')) widths.set(' ', Math.min(width, advances.get(' ') ?? automatic));
+  }
+  layout = {indices, widths, defaults, visibleWidths, width, height, columns};
+  byId('atlasMeta').textContent = `${atlasWidth} × ${atlasHeight} px`;
+  byId('outWidth').value = width;
+  byId('outHeight').value = height;
+  byId('outChars').value = config.charset;
+  byId('outSpacing').value = spacingData(widths);
+  const notes = [t('dimensions', {columns, rows, width, height})];
+  if (art.size) notes.push(t('renderSize', {n: art.size}));
+  if (art.width > config.width || art.height > config.height) notes.push(t('expanded'));
+  if (art.fit && config.offset) notes.push(t('offsetNote'));
+  if (config.normalized) notes.push(t('normalized'));
+  if (config.proportional && config.space > width) notes.push(t('spaceLimited', {n: width}));
+  note.textContent = notes.join(' · ');
+  document.querySelectorAll('[data-output]').forEach(button => {button.disabled = false;});
+  updateZoom();
+  renderSample();
+  renderEditor();
+}
+
+function updateZoom() {
+  const zoom = Number(fieldValue('zoom'));
+  atlas.style.width = atlas.width * zoom + 'px';
+  atlas.style.height = atlas.height * zoom + 'px';
+}
+
+function renderSample() {
+  const sample = fieldValue('sample').slice(0, 300).normalize('NFC');
+  if (!layout || !sample) {
+    sampleCanvas.width = sampleCanvas.height = 1;
+    sampleCanvas.style.removeProperty('width');
+    sampleCanvas.style.removeProperty('height');
+    return;
+  }
+  const {width, height, columns, indices, widths} = layout;
+  const zoom = width <= 24 && height <= 24 ? 2 : 1;
+  const available = Math.max(width, Math.floor((byId('sampleArea').clientWidth - 24) / zoom));
+  const cells = [];
+  let x = 0;
+  let y = 0;
+  let longest = 1;
+  for (const char of sample) {
+    const advance = widths.get(char) ?? width;
+    if (x && x + advance > available) {
+      x = 0;
+      y += height;
+    }
+    if (y + height > MAX_ATLAS) break;
+    cells.push({index: indices.get(char), x, y, advance});
+    x += advance;
+    longest = Math.max(longest, x);
+  }
+  sampleCanvas.width = longest;
+  sampleCanvas.height = y + height;
+  sampleCanvas.style.width = longest * zoom + 'px';
+  sampleCanvas.style.height = (y + height) * zoom + 'px';
+  for (const {index, x, y, advance} of cells) {
+    if (index !== undefined) sampleContext.drawImage(atlas, index % columns * width, Math.floor(index / columns) * height,
+      advance, height, x, y, advance, height);
+  }
+}
+
+function glyphLabel(char) {
+  return char === ' ' ? '␣' : char.trim() ? char : 'U+' + char.charCodeAt(0).toString(16).toUpperCase();
+}
+
+function renderEditor() {
+  const picker = byId('selectedGlyph');
+  const list = byId('glyphs');
+  const characters = editor ? [...editor.config.characters] : [];
+  if (characters.length && !characters.includes(' ')) characters.push(' ');
+  if (characters.length && !characters.includes(selectedGlyph)) selectedGlyph = characters[0];
+  if (editorCharacters !== editor?.config.charset || list.dataset.language !== language) {
+    editorCharacters = editor?.config.charset;
+    list.dataset.language = language;
+    picker.replaceChildren();
+    list.replaceChildren();
+    for (const char of characters) {
+      picker.add(new Option(char === ' ' ? t('spaceName') : glyphLabel(char), char));
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.dataset.char = char;
+      button.textContent = glyphLabel(char);
+      button.title = char === ' ' ? t('spaceName') : glyphLabel(char);
+      if (char === ' ') button.setAttribute('aria-label', button.title);
+      list.append(button);
+    }
+  }
+  for (const button of list.children) {
+    const char = button.dataset.char;
+    button.setAttribute('aria-pressed', String(char === selectedGlyph));
+    button.classList.toggle('painted', editor.layer.has(char));
+    button.classList.toggle('custom', advances.has(char));
+  }
+  const selected = editor && selectedGlyph;
+  const drawable = selected && editor.config.characters.includes(selectedGlyph);
+  picker.disabled = !selected;
+  pixelCanvas.hidden = !drawable;
+  byId('pixelArea').hidden = !drawable;
+  byId('pencil').disabled = byId('eraser').disabled = !drawable;
+  byId('undo').disabled = !selected || !history.length;
+  byId('resetGlyph').hidden = mode !== 'font';
+  byId('resetGlyph').disabled = !drawable || !editor.layer.has(selectedGlyph);
+  byId('clear').disabled = !drawable || !glyphMask(selectedGlyph, editor.art, editor.layer)?.some(Boolean);
+  byId('editorHint').textContent = selected ? t(drawable ? 'drawHint' : 'editSpace') : '';
+  picker.value = selected ?? '';
+  renderAdvance();
+  if (byId('editorPanel').open) drawGrid();
+}
+
+function renderAdvance() {
+  const input = byId('glyphAdvance');
+  const automatic = layout?.defaults.get(selectedGlyph);
+  const saved = advances.get(selectedGlyph);
+  input.disabled = automatic === undefined;
+  byId('resetAdvance').disabled = input.disabled || saved === undefined;
+  if (automatic === undefined) {
+    input.value = '';
+    input.placeholder = '';
+    byId('advanceHint').textContent = '';
+    return;
+  }
+  input.max = layout.width;
+  input.placeholder = String(automatic);
+  const actual = layout.widths.get(selectedGlyph) ?? automatic;
+  if (document.activeElement !== input) input.value = saved === undefined ? '' : actual;
+  const notes = [t('defaultAdvance', {n: automatic})];
+  if (saved > layout.width) notes.push(t('advanceLimited', {n: actual}));
+  if (actual < layout.visibleWidths.get(selectedGlyph)) notes.push(t('advanceClips'));
+  byId('advanceHint').textContent = notes.join(' · ');
+}
+
+const gridTile = document.createElement('canvas');
+const gridContext = gridTile.getContext('2d');
+function drawGrid() {
+  if (!editor || pixelCanvas.hidden || !byId('editorPanel').open) return;
+  const {art, config, layer} = editor;
+  const {width, height} = art;
+  const scale = Math.min(Math.floor(MAX_ATLAS / Math.max(width, height)),
+    Number(fieldValue('pixelZoom')) || clamp(Math.floor(290 / Math.max(width, height)), 2, 18));
+  const pixelSize = scale > 3 ? scale - 1 : scale;
+  if (pixelCanvas.width !== width * scale) pixelCanvas.width = width * scale;
+  if (pixelCanvas.height !== height * scale) pixelCanvas.height = height * scale;
+  if (gridTile.width !== 2 * scale) {
+    gridTile.width = gridTile.height = 2 * scale;
+    gridContext.fillStyle = '#161522';
+    gridContext.fillRect(0, 0, 2 * scale, 2 * scale);
+    for (let y = 0; y < 2; y++) for (let x = 0; x < 2; x++) {
+      gridContext.fillStyle = x === y ? '#222133' : '#29283c';
+      gridContext.fillRect(x * scale, y * scale, pixelSize, pixelSize);
+    }
+  }
+  pixelContext.fillStyle = pixelContext.createPattern(gridTile, 'repeat');
+  pixelContext.fillRect(0, 0, pixelCanvas.width, pixelCanvas.height);
+  const mask = glyphMask(selectedGlyph, art, layer);
+  if (mask) {
+    pixelContext.fillStyle = config.colors.fill.start;
+    for (let i = 0; i < mask.length; i++) {
+      if (!mask[i]) continue;
+      pixelContext.globalAlpha = mask[i] / 255;
+      pixelContext.fillRect((i % width) * scale, Math.floor(i / width) * scale, pixelSize, pixelSize);
+    }
+    pixelContext.globalAlpha = 1;
+  }
+  keyboardCursor.x = clamp(keyboardCursor.x, 0, width - 1);
+  keyboardCursor.y = clamp(keyboardCursor.y, 0, height - 1);
+  if (document.activeElement === pixelCanvas) {
+    pixelContext.strokeStyle = '#b29aff';
+    pixelContext.strokeRect(keyboardCursor.x * scale + .5, keyboardCursor.y * scale + .5, pixelSize - 1, pixelSize - 1);
+  }
+}
+
+function selectGlyph(char) {
+  if (!editor || !layout.defaults.has(char)) return;
+  finishStroke();
+  selectedGlyph = char;
+  keyboardCursor = {x: 0, y: 0};
+  byId('glyphAdvance').value = advances.has(char) ? Math.min(editor.width, advances.get(char)) : '';
+  if (editor) renderEditor();
+  markChanged();
+}
+
+function recordEdit(char, before, layer) {
+  history.push({char, before, layer});
+  if (history.length > 100) history.shift();
+}
+
+function editPixel(edit, x, y, char) {
+  const key = y * GRID + x;
+  const stride = editor.art.stride ?? editor.art.width;
+  const base = edit.clear || x >= stride ? 0 : editor.art.glyphs.get(char)?.[y * stride + x] ?? 0;
+  const desired = brush === 'pencil' ? 255 : 0;
+  if (desired === base) return edit.pixels.delete(key);
+  if (edit.pixels.get(key) === desired) return false;
+  edit.pixels.set(key, desired);
+  return true;
+}
+
+function workingEdit(before) {
+  return {clear: before?.clear ?? false, pixels: new Map(before?.pixels)};
+}
+
+function applyEdit(layer, char, edit) {
+  if (edit && (edit.clear || edit.pixels.size)) layer.set(char, edit);
+  else layer.delete(char);
+}
+
+function paintLine(edit, char, from, to) {
+  const steps = Math.max(Math.abs(to.x - from.x), Math.abs(to.y - from.y), 1);
+  let changed = false;
+  for (let step = 0; step <= steps; step++) {
+    const x = Math.round(from.x + (to.x - from.x) * step / steps);
+    const y = Math.round(from.y + (to.y - from.y) * step / steps);
+    changed = editPixel(edit, x, y, char) || changed;
+  }
+  return changed;
+}
+
+function pointerCell(event) {
+  const bounds = pixelCanvas.getBoundingClientRect();
+  const {width, height} = editor.art;
+  return {
+    x: clamp(Math.floor((event.clientX - bounds.left) * width / bounds.width), 0, width - 1),
+    y: clamp(Math.floor((event.clientY - bounds.top) * height / bounds.height), 0, height - 1),
+  };
+}
+
+function finishStroke(event) {
+  if (!stroke || (event && event.pointerId !== stroke.id)) return;
+  const {char, before, changed, layer} = stroke;
+  stroke = null;
+  if (changed) {
+    recordEdit(char, before, layer);
+    markChanged();
+    scheduleBuild();
+  }
+}
+
+function changeMode(next) {
+  if (mode === next) return;
+  finishStroke();
+  mode = next;
+  history.length = 0;
+  if (next === 'draw') byId('editorPanel').open = true;
+  status();
+  markChanged();
+  scheduleBuild();
+}
+
+function addFont(label, properties) {
+  const id = 'face-' + (++nextFontId);
+  const font = {...properties, id, label};
+  fonts.set(id, font);
+  byId('fonts').add(new Option(label, id));
+  return font;
+}
+
+async function loadFace(font) {
+  if (font.css || font.snapshot) return;
+  const family = 'SpriteFontFace' + font.id.replace('-', '');
+  let face;
+  if (font.local) {
+    const name = JSON.stringify(font.local.postscriptName);
+    const fullName = JSON.stringify(font.local.fullName);
+    try {
+      face = await new FontFace(family, `local(${name}), local(${fullName})`).load();
+    } catch {
+      face = await new FontFace(family, await (await font.local.blob()).arrayBuffer()).load();
+    }
+  } else {
+    face = await new FontFace(family, await font.file.arrayBuffer()).load();
+  }
+  document.fonts.add(face);
+  font.css = `"${family}", monospace`;
+}
+
+async function activateFont(id) {
+  const entry = fonts.get(id);
+  if (!entry) return;
+  finishStroke();
+  const request = ++fontRequest;
+  fontLoading = true;
+  scheduleBuild();
+  try {
+    entry.loading ??= loadFace(entry).catch(error => {
+      entry.loading = null;
+      throw error;
+    });
+    await entry.loading;
+    if (request !== fontRequest) return;
+    if (activeFont !== entry) history.length = 0;
+    activeFont = entry;
+    byId('fonts').value = id;
+    if (entry.snapshot) setHint('snapshotHelp');
+    else if (hint[0] === 'snapshotHelp') setHint('fontHelp');
+    status();
+    markChanged();
+  } catch {
+    if (request !== fontRequest) return;
+    byId('fonts').value = activeFont.id;
+    status('fontFailed', true);
+  } finally {
+    if (request === fontRequest) {
+      fontLoading = false;
+      scheduleBuild();
+    }
+  }
+}
+
+async function scanFonts() {
+  if (typeof window.queryLocalFonts !== 'function') {
+    setHint('desktopFonts');
+    return;
+  }
+  byId('scan').disabled = true;
+  try {
+    const localFonts = await window.queryLocalFonts();
+    const known = new Set([...fonts.values()].map(font => font.local?.postscriptName).filter(Boolean));
+    for (const local of [...localFonts].sort((a, b) => a.fullName.localeCompare(b.fullName, language))) {
+      if (known.has(local.postscriptName)) continue;
+      known.add(local.postscriptName);
+      addFont(local.fullName, {local});
+    }
+    if (known.size) {
+      setHint('fontsFound', {n: known.size});
+      byId('fonts').focus();
+    } else {
+      setHint('noFonts');
+    }
+  } catch {
+    setHint('fontPermission');
+  } finally {
+    byId('scan').disabled = false;
+  }
+}
+
+function encodeMask(char, mask, width, height) {
+  let left = width;
+  let top = height;
+  let right = -1;
+  let bottom = -1;
+  for (let i = 0; i < mask.length; i++) {
+    if (!mask[i]) continue;
+    const x = i % width;
+    const y = Math.floor(i / width);
+    left = Math.min(left, x);
+    right = Math.max(right, x);
+    top = Math.min(top, y);
+    bottom = Math.max(bottom, y);
+  }
+  if (right < 0) return null;
+  const cropWidth = right - left + 1;
+  const cropHeight = bottom - top + 1;
+  const rows = [];
+  for (let y = top; y <= bottom; y++) {
+    rows.push(String.fromCharCode(...mask.subarray(y * width + left, y * width + right + 1)));
+  }
+  return [char, left, top, cropWidth, cropHeight, btoa(rows.join(''))];
+}
+
+function fontSnapshot() {
+  const art = activeFont.snapshot ?? activeFont.lastArt;
+  if (!art) return null;
+  if (!art.encoded) {
+    const glyphs = [];
+    for (const [char, mask] of art.glyphs) {
+      const encoded = encodeMask(char, mask, art.width, art.height);
+      if (encoded) glyphs.push(encoded);
+    }
+    art.encoded = {width: art.width, height: art.height, size: art.size, glyphs};
+  }
+  return {...art.encoded, label: activeFont.label};
+}
+
+function serializeLayer(layer) {
+  return [...(layer ?? [])].map(([char, edit]) =>
+    [char, edit.clear, [...edit.pixels].map(([key, alpha]) => key * 2 + Number(alpha === 255))]);
+}
+
+function projectData() {
+  return {
+    format: 'spritefont-studio', version: 3, mode, selectedGlyph,
+    fields: Object.fromEntries(projectFields.map(id => [id,
+      Object.hasOwn(initialSettings, id) && (id !== 'fontSize' || fieldValue(id)) ? String(integerInput(id)) : fieldValue(id)])),
+    drawings: serializeLayer(drawings),
+    overrides: [...advances],
+    fontEdits: serializeLayer(fontLayers.get(activeFont.id)),
+    font: fontSnapshot(),
+  };
+}
+
+function requireProject(condition) {
+  if (!condition) throw new Error('Invalid SpriteFont Studio project');
+}
+
+function readLayer(entries) {
+  requireProject(Array.isArray(entries) && entries.length <= 65536);
+  const layer = new Map();
+  let count = 0;
+  for (const entry of entries) {
+    requireProject(Array.isArray(entry) && entry.length === 3);
+    const [char, clear, packed] = entry;
+    requireProject(supportedChar(char) && !layer.has(char) && typeof clear === 'boolean' && Array.isArray(packed));
+    count += packed.length;
+    requireProject(count <= MAX_EDIT_PIXELS && packed.length <= GRID * GRID);
+    const pixels = new Map();
+    for (const value of packed) {
+      requireProject(Number.isInteger(value) && value >= 0 && value < 2 * GRID * GRID);
+      const key = Math.floor(value / 2);
+      requireProject(!pixels.has(key));
+      pixels.set(key, value % 2 ? 255 : 0);
+    }
+    if (clear || pixels.size) layer.set(char, {clear, pixels});
+  }
+  return layer;
+}
+
+function readFont(snapshot) {
+  if (snapshot === null) return null;
+  requireProject(snapshot && typeof snapshot === 'object');
+  const {width, height, size, glyphs, label} = snapshot;
+  requireProject(Number.isInteger(width) && width >= 1 && width <= GRID &&
+    Number.isInteger(height) && height >= 1 && height <= GRID &&
+    Number.isInteger(size) && size >= 1 && size <= 512 &&
+    typeof label === 'string' && label.length <= 512 && Array.isArray(glyphs) &&
+    glyphs.length <= MAX_CHARS && width * height * glyphs.length <= MAX_PIXELS);
+  const masks = new Map();
+  for (const entry of glyphs) {
+    requireProject(Array.isArray(entry) && entry.length === 6);
+    const [char, left, top, cropWidth, cropHeight, data] = entry;
+    requireProject(supportedChar(char) && !masks.has(char) && Number.isInteger(left) && Number.isInteger(top) &&
+      Number.isInteger(cropWidth) && Number.isInteger(cropHeight) && cropWidth > 0 && cropHeight > 0 &&
+      left >= 0 && top >= 0 && left + cropWidth <= width && top + cropHeight <= height &&
+      typeof data === 'string' && data.length === 4 * Math.ceil(cropWidth * cropHeight / 3));
+    const pixels = atob(data);
+    requireProject(pixels.length === cropWidth * cropHeight);
+    const mask = new Uint8ClampedArray(width * height);
+    for (let y = 0; y < cropHeight; y++) for (let x = 0; x < cropWidth; x++) {
+      mask[(y + top) * width + x + left] = pixels.charCodeAt(y * cropWidth + x);
+    }
+    masks.set(char, mask);
+  }
+  return {label, snapshot: {width, height, size, glyphs: masks, encoded: {width, height, size, glyphs}}};
+}
+
+function legacyFields(values) {
+  const fields = {...fieldDefaults, sample: defaultSample ?? t('exampleSample')};
+  for (const [id, value] of Object.entries(values ?? {})) {
+    const migrated = id === 'ink' ? 'fillColor' : id;
+    if (!Object.hasOwn(fields, migrated) || typeof value !== typeof fields[migrated]) continue;
+    if (Object.hasOwn(initialSettings, migrated) && value === '' && migrated !== 'fontSize') continue;
+    fields[migrated] = value;
+  }
+  return fields;
+}
+
+function migrateV2(data) {
+  requireProject(data.fields && typeof data.fields.charset === 'string');
+  const convertLayer = entries => {
+    requireProject(Array.isArray(entries) && entries.length <= 2048);
+    let count = 0;
+    return entries.map(entry => {
+      requireProject(Array.isArray(entry) && entry.length === 2 && Array.isArray(entry[1]));
+      const [char, points] = entry;
+      count += points.length;
+      requireProject(points.length <= 65536 && count <= MAX_EDIT_PIXELS);
+      const packed = points.map(point => {
+        requireProject(Array.isArray(point) && point.length === 2);
+        const [key, alpha] = point;
+        requireProject(Number.isInteger(key) && key >= 0 && key < 65536 && (alpha === 0 || alpha === 255));
+        return (Math.floor(key / 256) * GRID + key % 256) * 2 + Number(alpha === 255);
+      });
+      return [char, false, packed];
+    });
+  };
+  let font = null;
+  if (data.fontBase !== null) {
+    requireProject(data.fontBase && typeof data.fontBase === 'object');
+    const {name: label, width, height, size, glyphs} = data.fontBase;
+    requireProject([width, height].every(value => Number.isInteger(value) && value >= 1 && value <= 256) &&
+      Array.isArray(glyphs) && glyphs.length <= MAX_CHARS && width * height * glyphs.length <= MAX_PIXELS);
+    const area = width * height;
+    const converted = [];
+    for (const entry of glyphs) {
+      requireProject(Array.isArray(entry) && entry.length === 2 && supportedChar(entry[0]) &&
+        typeof entry[1] === 'string' && entry[1].length <= 4 * Math.ceil(area * 2 / 3));
+      const [char, encoded] = entry;
+      if (!encoded) continue;
+      const runs = atob(encoded);
+      requireProject(runs.length % 2 === 0);
+      const mask = new Uint8ClampedArray(area);
+      let cursor = 0;
+      for (let i = 0; i < runs.length; i += 2) {
+        const end = cursor + runs.charCodeAt(i);
+        requireProject(end > cursor && end <= area);
+        mask.fill(runs.charCodeAt(i + 1), cursor, end);
+        cursor = end;
+      }
+      requireProject(cursor === area);
+      const packed = encodeMask(char, mask, width, height);
+      if (packed) converted.push(packed);
+    }
+    font = {label, width, height, size, glyphs: converted};
+  }
+  return {...data, version: 3, selectedGlyph: data.selectedGlyph ?? 'A', fields: legacyFields(data.fields),
+    drawings: convertLayer(data.drawings), fontEdits: convertLayer(data.retouches), font};
+}
+
+function readProject(data) {
+  if (data?.format === 'spritefont-studio' && data.version === 2) data = migrateV2(data);
+  requireProject(data?.format === 'spritefont-studio' && data.version === 3 &&
+    ['draw', 'font'].includes(data.mode) && data.fields && supportedChar(data.selectedGlyph));
+  const fields = {};
+  for (const id of projectFields) {
+    const value = data.fields[id];
+    const input = byId(id);
+    requireProject(typeof value === typeof fieldDefaults[id]);
+    if (input.type === 'number' && (id !== 'fontSize' || value !== '')) {
+      requireProject(/^-?\d+$/.test(value) && Number(value) >= Number(input.min) && Number(value) <= Number(input.max));
+    }
+    if (input.type === 'color') requireProject(/^#[\da-f]{6}$/i.test(value));
+    if (input.tagName === 'SELECT') requireProject([...input.options].some(option => option.value === value));
+    if (id === 'sample') requireProject(value.length <= 300);
+    if (id === 'charset') requireProject(value.length <= 262144);
+    fields[id] = value;
+  }
+  const overrides = new Map();
+  requireProject(Array.isArray(data.overrides) && data.overrides.length <= 65536);
+  for (const entry of data.overrides) {
+    requireProject(Array.isArray(entry) && entry.length === 2 && supportedChar(entry[0]) && !overrides.has(entry[0]) &&
+      Number.isInteger(entry[1]) && entry[1] >= 1 && entry[1] <= MAX_ATLAS);
+    overrides.set(...entry);
+  }
+  return {...data, fields, overrides, drawings: readLayer(data.drawings), fontEdits: readLayer(data.fontEdits), font: readFont(data.font)};
+}
+
+function setField(id, value) {
+  const input = byId(id);
+  if (input.type === 'checkbox') input.checked = value;
+  else input.value = value;
+}
+
+function replaceMap(target, source) {
+  target.clear();
+  for (const [key, value] of source) target.set(key, value);
+}
+
+function applyProject(project, localSource) {
+  fontRequest++;
+  fontLoading = false;
+  stroke = null;
+  history.length = 0;
+  defaultSample = undefined;
+  for (const [id, value] of Object.entries(project.fields)) setField(id, value);
+  replaceMap(drawings, project.drawings);
+  replaceMap(advances, project.overrides);
+  const saved = project.font;
+  const recoverable = localSource?.local || localSource?.file;
+  for (const [id, font] of fonts) {
+    if (!font.snapshot) continue;
+    fonts.delete(id);
+    fontLayers.delete(id);
+    byId('fonts').querySelector(`option[value="${id}"]`).remove();
+  }
+  activeFont = builtinFonts.get(localSource?.builtin) ??
+    (saved ? addFont(saved.label, saved) : builtinFonts.get(project.builtinFont) ?? builtinFonts.get('consolas'));
+  fontLayers.set(activeFont.id, project.fontEdits);
+  byId('fonts').value = activeFont.id;
+  mode = project.mode;
+  selectedGlyph = project.selectedGlyph;
+  keyboardCursor = {x: 0, y: 0};
+  byId('editorPanel').open = true;
+  byId('outlinePanel').open = fieldValue('outlineOn');
+  byId('shadowPanel').open = fieldValue('shadowOn');
+  setHint(activeFont.snapshot ? 'snapshotHelp' : 'fontHelp');
+  scheduleBuild();
+  if (recoverable && saved) resumeLocalFont(saved.label, localSource, project.fontEdits, activeFont);
+}
+
+async function resumeLocalFont(label, source, edits, fallback) {
+  const entry = addFont(label, source);
+  const request = ++fontRequest;
+  try {
+    entry.loading = loadFace(entry);
+    await entry.loading;
+    if (request !== fontRequest || activeFont !== fallback) return;
+    const currentEdits = fontLayers.get(fallback.id) ?? edits;
+    fontLayers.set(entry.id, currentEdits);
+    activeFont = entry;
+    byId('fonts').value = entry.id;
+    setHint('fontHelp');
+    scheduleBuild();
+  } catch {
+    entry.loading = null;
+    if (request === fontRequest) setHint('snapshotHelp');
+  }
+}
+
+function localFontSource() {
+  if (builtinFonts.has(activeFont.id)) return {builtin: activeFont.id};
+  if (activeFont.file) return {file: activeFont.file};
+  const local = activeFont.local;
+  if (local) return {local: {postscriptName: local.postscriptName, fullName: local.fullName}};
+  return null;
+}
+
+let database;
+let connection;
+function openDatabase() {
+  database ??= new Promise((resolve, reject) => {
+    const request = indexedDB.open('spritefont-studio', 1);
+    request.onupgradeneeded = () => request.result.createObjectStore('projects');
+    request.onsuccess = () => {
+      connection = request.result;
+      resolve(connection);
+    };
+    request.onerror = () => reject(request.error);
+  });
+  return database;
+}
+
+function markChanged() {
+  userInteracted = true;
+  revision++;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(autosave, 250);
+}
+
+async function autosave() {
+  saveTimer = undefined;
+  const savedRevision = revision;
+  if (fontLoading) return;
+  try {
+    const db = await openDatabase();
+    if (savedRevision !== revision || fontLoading) return;
+    persistProject(db);
+  } catch {
+    // File-based backups remain available when browser storage is disabled.
+  }
+}
+
+function persistProject(db) {
+  const record = {project: projectData(), source: localFontSource()};
+  db.transaction('projects', 'readwrite').objectStore('projects').put(record, 'active');
+}
+
+window.addEventListener('pagehide', () => {
+  if (saveTimer === undefined || !connection || fontLoading) return;
+  clearTimeout(saveTimer);
+  saveTimer = undefined;
+  try { persistProject(connection); } catch { /* Browser storage can be unavailable. */ }
+});
+
+function migrateBrowserProject() {
+  try {
+    const existing = JSON.parse(localStorage.getItem('spritefont-studio-project-v2'));
+    if (existing) {
+      applyProject(readProject(existing));
+      markChanged();
+      return;
+    }
+  } catch { /* Try the earlier autosave. */ }
+  const saved = JSON.parse(localStorage.getItem('spritefont-studio-project-v1'));
+  if (!saved || !Array.isArray(saved.drawings)) return;
+  const fields = legacyFields(saved.fields);
+  const legacyDrawings = saved.drawings
+    .filter(item => Array.isArray(item) && supportedChar(item[0]) && Array.isArray(item[1]))
+    .map(([char, points]) => [char, false, [...new Set(points)]
+      .filter(point => Number.isInteger(point) && point >= 0 && point < 16384)
+      .map(point => (Math.floor(point / 128) * GRID + point % 128) * 2 + 1)]);
+  const project = {format: 'spritefont-studio', version: 3, mode: saved.mode === 'draw' ? 'draw' : 'font',
+    selectedGlyph: 'A', fields, drawings: legacyDrawings, overrides: [], fontEdits: [], font: null};
+  applyProject(readProject(project), {builtin: 'consolas'});
+  markChanged();
+}
+
+async function restoreBrowserProject() {
+  try {
+    const db = await openDatabase();
+    const saved = await new Promise((resolve, reject) => {
+      const request = db.transaction('projects').objectStore('projects').get('active');
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    if (userInteracted) return;
+    if (saved) {
+      applyProject(readProject(saved.project), saved.source);
+      return;
+    }
+  } catch {
+    // A corrupt or inaccessible autosave can be replaced by importing a backup.
+  }
+  if (!userInteracted) {
+    try { migrateBrowserProject(); } catch { /* Keep the default project. */ }
+  }
+}
+
+function downloadBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = name;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+
+function exportProject() {
+  try {
+    finishStroke();
+    if (frame) {
+      cancelAnimationFrame(frame);
+      build();
+    }
+    const project = projectData();
+    // Validate against the same limits the import flow applies.
+    readProject(project);
+    const contents = JSON.stringify(project);
+    downloadBlob(new Blob([contents], {type: 'application/json'}), 'spritefont-project.spritefont.json');
+    status('projectExported');
+  } catch {
+    status('projectExportFailed', true);
+  }
+}
+
+async function importProject(event) {
+  const file = event.target.files[0];
+  event.target.value = '';
+  if (!file) return;
+  userInteracted = true;
+  const request = ++importRequest;
+  try {
+    requireProject(file.size <= 96 * 1024 * 1024);
+    const project = readProject(JSON.parse(await file.text()));
+    if (request !== importRequest) return;
+    applyProject(project);
+    markChanged();
+    status('projectImported');
+  } catch {
+    if (request === importRequest) status('projectInvalid', true);
+  }
+}
+
+function pngBlob() {
+  return new Promise((resolve, reject) => {
+    atlas.toBlob(blob => blob ? resolve(blob) : reject(new Error('PNG')), 'image/png');
+  });
+}
+
+async function copyImage() {
+  try {
+    if (!navigator.clipboard?.write || !window.ClipboardItem) throw new Error('Clipboard');
+    await navigator.clipboard.write([new ClipboardItem({'image/png': pngBlob()})]);
+    status('imageCopied');
+  } catch {
+    status('imageCopyFailed', true);
+  }
+}
+
+async function copyText(id) {
+  const input = byId(id);
+  try {
+    await navigator.clipboard.writeText(input.value);
+    status('textCopied');
+  } catch {
+    input.focus();
+    input.select();
+    const copied = document.execCommand('copy');
+    status(copied ? 'textCopied' : 'textSelected', !copied);
+  }
+}
+
+async function downloadImage() {
+  try {
+    downloadBlob(await pngBlob(), 'spritefont.png');
+    status('pngSaved');
+  } catch {
+    status('pngFailed', true);
+  }
+}
+
+const translations = {
+  tagline: ['Sprite font generator and editor for Construct 3', 'Generador y editor de sprite fonts para Construct 3'],
+  language: ['Language', 'Idioma'],
+  browserLanguage: ['Browser default', 'Idioma del navegador'],
+  settings: ['Settings', 'Configuración'],
+  glyphSource: ['Glyph source', 'Origen de los glifos'],
+  fromFont: ['From a font', 'Desde una fuente'],
+  draw: ['Draw', 'Dibujar'],
+  font: ['Font', 'Fuente'],
+  browserMono: ['Browser monospace', 'Monoespaciada del navegador'],
+  installed: ['Installed fonts', 'Fuentes instaladas'],
+  openFont: ['Open font file…', 'Abrir archivo de fuente…'],
+  minSize: ['Min. font size (px)', 'Tamaño mínimo (px)'],
+  maxSize: ['Max. font size (px)', 'Tamaño máximo (px)'],
+  cellHeight: ['Cell height', 'Alto de celda'],
+  offset: ['Vertical offset (px)', 'Desplazamiento vertical (px)'],
+  hard: ['Hard edges', 'Bordes duros'],
+  width: ['Width (px)', 'Ancho (px)'],
+  height: ['Height (px)', 'Alto (px)'],
+  columns: ['Columns', 'Columnas'],
+  cellSizes: ['Cell size presets', 'Tamaños de celda'],
+  charset: ['Character set', 'Juego de caracteres'],
+  preset: ['Restore example', 'Restaurar ejemplo'],
+  advance: ['Advance', 'Avance'],
+  fixed: ['Fixed · monospace', 'Fijo · monoespaciado'],
+  proportional: ['Proportional · based on glyph', 'Proporcional · según el dibujo'],
+  gap: ['Right gap (px)', 'Margen derecho (px)'],
+  spaceWidth: ['Space width (px)', 'Ancho del espacio (px)'],
+  style: ['Style', 'Estilo'],
+  fill: ['Fill color', 'Color de relleno'],
+  outline: ['Outline', 'Contorno'],
+  enableOutline: ['Enable outline', 'Activar contorno'],
+  thickness: ['Thickness (px)', 'Grosor (px)'],
+  outlineColor: ['Outline color', 'Color del contorno'],
+  shadow: ['Drop shadow', 'Sombra paralela'],
+  enableShadow: ['Enable shadow', 'Activar sombra'],
+  shadowX: ['Horizontal offset (px)', 'Distancia horizontal (px)'],
+  shadowY: ['Vertical offset (px)', 'Distancia vertical (px)'],
+  blur: ['Blur (px)', 'Desenfoque (px)'],
+  opacity: ['Opacity (%)', 'Opacidad (%)'],
+  shadowColor: ['Shadow color', 'Color de la sombra'],
+  gradient: ['Gradient', 'Gradiente'],
+  endColor: ['End color', 'Color final'],
+  angle: ['Angle (°)', 'Ángulo (°)'],
+  preview: ['Preview', 'Vista previa'],
+  editor: ['Pixel editor', 'Editor de píxeles'],
+  character: ['Character', 'Carácter'],
+  pixelZoom: ['Editor zoom', 'Zoom del editor'],
+  fit: ['Fit', 'Ajustar'],
+  editCharacters: ['Editable characters', 'Caracteres editables'],
+  drawingTools: ['Drawing tools', 'Herramientas de dibujo'],
+  pencil: ['Pencil', 'Lápiz'],
+  eraser: ['Eraser', 'Borrador'],
+  undo: ['Undo', 'Deshacer'],
+  clear: ['Clear glyph', 'Borrar glifo'],
+  resetGlyph: ['Restore original', 'Restaurar original'],
+  grid: ['Pixel grid. Move with the arrow keys. Press Enter to draw or erase.', 'Grilla de píxeles. Movete con las flechas y usá Enter para dibujar o borrar.'],
+  drawHint: ['Drag to draw. With a keyboard, use the arrow keys and Enter.', 'Arrastrá para dibujar. Con el teclado, usá las flechas y Enter.'],
+  editSpace: ['Add a space to the character set to draw it.', 'Agregá un espacio al juego de caracteres si querés dibujarlo.'],
+  customAdvance: ['Character advance (px)', 'Avance del carácter (px)'],
+  resetAdvance: ['Use calculated width', 'Usar avance calculado'],
+  zoom: ['Zoom', 'Zoom'],
+  atlas: ['Character atlas', 'Atlas de caracteres'],
+  sampleText: ['Sample text', 'Texto de prueba'],
+  sampleCanvas: ['Sample text rendered with the atlas', 'Texto de prueba renderizado con el atlas'],
+  exports: ['Export to Construct 3', 'Exportar a Construct 3'],
+  copyImage: ['Copy image', 'Copiar imagen'],
+  downloadPng: ['Download PNG', 'Descargar PNG'],
+  copyWidth: ['Copy width', 'Copiar ancho'],
+  copyHeight: ['Copy height', 'Copiar alto'],
+  copyChars: ['Copy characters', 'Copiar caracteres'],
+  copyJson: ['Copy JSON', 'Copiar JSON'],
+  constructHelp: ['Import or paste the PNG into the Sprite Font object’s image editor. Paste these four properties and set Character spacing to 0.', 'Importá o pegá el PNG en el editor de imagen del objeto Sprite Font. Pegá estas cuatro propiedades y poné Character spacing en 0.'],
+  project: ['Editable project', 'Proyecto editable'],
+  exportProject: ['Export project', 'Exportar proyecto'],
+  importProject: ['Import project…', 'Importar proyecto…'],
+  exampleSample: ['Aa Bb Cc 123 / Hello, Construct!', 'Aa Bb Cc 123 / ¡Hola, Construct!'],
+  count: ['{n} characters', '{n} caracteres'],
+  spaceName: ['Space', 'Espacio'],
+  dimensions: ['{columns} columns × {rows} rows · {width} × {height} px per cell', '{columns} columnas × {rows} filas · {width} × {height} px por celda'],
+  loading: ['Loading font…', 'Cargando la fuente…'],
+  atlasLimit: ['Use up to 512 characters and an atlas up to 4096 px per side. Try fewer characters, smaller cells, or a different column count.', 'Usá hasta 512 caracteres y un atlas de hasta 4096 px por lado. Probá menos caracteres, celdas más chicas u otra cantidad de columnas.'],
+  empty: ['Add at least one character.', 'Agregá al menos un carácter.'],
+  renderSize: ['Font rendered at {n} px', 'Fuente a {n} px'],
+  expanded: ['Cells expanded to fit the font', 'Las celdas se ampliaron para que entre la fuente'],
+  offsetNote: ['Vertical offset may crop pixels', 'El desplazamiento vertical puede recortar píxeles'],
+  normalized: ['Accents were normalized and unsupported or duplicate characters removed', 'Se normalizaron acentos y se omitieron duplicados y caracteres no admitidos'],
+  spaceLimited: ['Space width capped at {n} px', 'El ancho del espacio se limitó a {n} px'],
+  defaultAdvance: ['Calculated width: {n} px', 'Avance calculado: {n} px'],
+  advanceLimited: ['Limited to {n} px by the current cell', 'Limitado a {n} px por la celda actual'],
+  advanceClips: ['This width crops part of the glyph in the sample', 'Este avance recorta parte del glifo en la vista previa'],
+  fontHelp: ['Use desktop Edge or Chrome to access installed fonts.', 'Usá Edge o Chrome de escritorio para acceder a tus fuentes instaladas.'],
+  snapshotHelp: ['This project includes editable raster glyphs. Select another font to generate new base glyphs.', 'Este proyecto incluye glifos rasterizados y editables. Elegí otra fuente para generar glifos base nuevos.'],
+  desktopFonts: ['Open in desktop Edge or Chrome, or load a font file.', 'Abrí la herramienta en Edge o Chrome de escritorio, o cargá un archivo de fuente.'],
+  fontsFound: ['{n} installed variants are available in the font list.', 'Hay {n} variantes instaladas en el selector.'],
+  noFonts: ['No installed fonts were found. You can open a font file.', 'El navegador no encontró fuentes. Podés abrir un archivo de fuente.'],
+  fontPermission: ['Check the browser’s permission for local fonts or open a font file.', 'Revisá el permiso de fuentes locales del navegador o abrí un archivo.'],
+  fontFailed: ['This font couldn’t be loaded. Try another font or open its file directly.', 'No se pudo cargar esta fuente. Probá con otra o abrí el archivo directamente.'],
+  imageCopied: ['Image copied. Paste it into Construct 3’s image editor.', 'Imagen copiada. Pegala en el editor de imagen de Construct 3.'],
+  imageCopyFailed: ['The browser couldn’t copy the image. Download the PNG and import it into Construct 3.', 'El navegador no pudo copiar la imagen. Descargá el PNG e importalo en Construct 3.'],
+  textCopied: ['Copied to the clipboard.', 'Copiado al portapapeles.'],
+  textSelected: ['Text selected. Press Ctrl+C to copy it.', 'Texto seleccionado. Copialo con Ctrl+C.'],
+  pngSaved: ['PNG ready to download.', 'PNG preparado para descargar.'],
+  pngFailed: ['The PNG couldn’t be downloaded.', 'No se pudo descargar el PNG.'],
+  projectExported: ['Editable project ready to download.', 'Proyecto editable preparado para descargar.'],
+  projectExportFailed: ['The project couldn’t be exported.', 'No se pudo exportar el proyecto.'],
+  projectImported: ['Project loaded.', 'Proyecto cargado.'],
+  projectInvalid: ['This file is invalid or uses an unsupported project format.', 'El archivo es inválido o usa un formato de proyecto incompatible.'],
+};
+
+function t(key, values = {}) {
+  const template = translations[key][language === 'es' ? 1 : 0];
+  return template.replace(/\{(\w+)\}/g, (_, name) => String(values[name]));
+}
+
+function readLanguage() {
+  try {
+    const preference = localStorage.getItem('spritefont-studio-language');
+    return ['en', 'es'].includes(preference) ? preference : 'auto';
+  } catch {
+    return 'auto';
+  }
+}
+
+function localize() {
+  const preference = fieldValue('language');
+  const locale = (navigator.languages?.[0] ?? navigator.language ?? 'en').split('-')[0].toLowerCase();
+  language = preference === 'auto' ? (locale === 'es' ? 'es' : 'en') : preference;
+  document.documentElement.lang = language === 'es' ? 'es-AR' : 'en';
+  for (const node of document.querySelectorAll('[data-t]')) node.textContent = t(node.dataset.t);
+  for (const node of document.querySelectorAll('[data-a]')) node.setAttribute('aria-label', t(node.dataset.a));
+  for (const node of document.querySelectorAll('[data-p]')) node.placeholder = t(node.dataset.p);
+  if (fieldValue('sample') === defaultSample) {
+    defaultSample = t('exampleSample');
+    byId('sample').value = defaultSample;
+  }
+  setHint(...hint);
+  status(...message);
+  scheduleBuild();
+}
+
+byId('language').value = readLanguage();
+defaultSample = '';
+byId('language').onchange = () => {
+  try { localStorage.setItem('spritefont-studio-language', fieldValue('language')); } catch { /* Keep this session’s choice. */ }
+  localize();
+};
+window.addEventListener('languagechange', localize);
+byId('fontMode').onclick = () => changeMode('font');
+byId('drawMode').onclick = () => changeMode('draw');
+byId('scan').onclick = scanFonts;
+byId('fonts').onchange = event => activateFont(event.target.value);
+byId('openFont').onclick = () => byId('fontFile').click();
+byId('fontFile').onchange = event => {
+  const file = event.target.files[0];
+  event.target.value = '';
+  if (!file) return;
+  const font = addFont(file.name, {file});
+  byId('fonts').value = font.id;
+  activateFont(font.id);
+};
+byId('preset').onclick = () => {
+  byId('charset').value = EXAMPLE;
+  for (const id of ['width', 'height', 'columns', 'minFontSize', 'fontSize']) byId(id).value = fieldDefaults[id];
+  markChanged();
+  scheduleBuild();
+};
+for (const button of document.querySelectorAll('[data-size]')) button.onclick = () => {
+  byId('width').value = byId('height').value = button.dataset.size;
+  markChanged();
+  scheduleBuild();
+};
+for (const id of projectFields) {
+  byId(id).addEventListener('input', () => {
+    if (id === 'sample') defaultSample = undefined;
+    markChanged();
+    if (id === 'sample') renderSample();
+    else if (id === 'zoom') updateZoom();
+    else if (id === 'pixelZoom') drawGrid();
+    else scheduleBuild();
+  });
+}
+for (const id of Object.keys(initialSettings)) byId(id).addEventListener('change', () => {
+  if (id !== 'fontSize' || fieldValue(id)) byId(id).value = integerInput(id);
+  if (fieldValue('fontSize') && integerInput('fontSize') < integerInput('minFontSize')) {
+    byId('fontSize').value = integerInput('minFontSize');
+  }
+  markChanged();
+  scheduleBuild();
+});
+new ResizeObserver(renderSample).observe(byId('sampleArea'), {box: 'border-box'});
+byId('copyImage').onclick = copyImage;
+byId('download').onclick = downloadImage;
+byId('exportProject').onclick = exportProject;
+byId('importProject').onclick = () => byId('projectFile').click();
+byId('projectFile').onchange = importProject;
+document.querySelectorAll('[data-copy]').forEach(button => {
+  button.onclick = () => copyText(button.dataset.copy);
+});
+byId('editorPanel').ontoggle = drawGrid;
+byId('glyphs').onclick = event => selectGlyph(event.target.closest('button')?.dataset.char);
+byId('selectedGlyph').onchange = event => selectGlyph(event.target.value);
+byId('glyphAdvance').onchange = event => {
+  if (!layout || !editor) return;
+  const input = event.target;
+  if (input.value === '') advances.delete(selectedGlyph);
+  else {
+    const next = clamp(Math.round(input.valueAsNumber), 1, layout.width);
+    advances.set(selectedGlyph, next);
+    input.value = next;
+  }
+  markChanged();
+  scheduleBuild();
+};
+byId('resetAdvance').onclick = () => {
+  advances.delete(selectedGlyph);
+  byId('glyphAdvance').value = '';
+  markChanged();
+  scheduleBuild();
+};
+for (const tool of ['pencil', 'eraser']) byId(tool).onclick = () => {
+  brush = tool;
+  byId('pencil').setAttribute('aria-pressed', String(tool === 'pencil'));
+  byId('eraser').setAttribute('aria-pressed', String(tool === 'eraser'));
+};
+for (const id of ['clear', 'resetGlyph']) byId(id).onclick = () => {
+  if (!editor) return;
+  finishStroke();
+  const {layer} = editor;
+  recordEdit(selectedGlyph, layer.get(selectedGlyph), layer);
+  if (id === 'clear' && mode === 'font') layer.set(selectedGlyph, {clear: true, pixels: new Map()});
+  else layer.delete(selectedGlyph);
+  markChanged();
+  scheduleBuild();
+};
+byId('undo').onclick = () => {
+  finishStroke();
+  const change = history.pop();
+  if (!change) return;
+  applyEdit(change.layer, change.char, change.before);
+  selectGlyph(change.char);
+  markChanged();
+  scheduleBuild();
+};
+pixelCanvas.onpointerdown = event => {
+  if (event.button !== 0 || !editor || pixelCanvas.hidden || stroke) return;
+  pixelCanvas.setPointerCapture(event.pointerId);
+  const point = pointerCell(event);
+  keyboardCursor = point;
+  const {layer} = editor;
+  const before = layer.get(selectedGlyph);
+  const edit = workingEdit(before);
+  const changed = editPixel(edit, point.x, point.y, selectedGlyph);
+  stroke = {id: event.pointerId, char: selectedGlyph, before, edit, last: point, layer, changed};
+  applyEdit(layer, selectedGlyph, edit);
+  drawGrid();
+};
+pixelCanvas.onpointermove = event => {
+  if (!editor || !stroke || event.pointerId !== stroke.id) return;
+  const point = pointerCell(event);
+  const changed = paintLine(stroke.edit, stroke.char, stroke.last, point);
+  stroke.changed ||= changed;
+  if (changed) applyEdit(stroke.layer, stroke.char, stroke.edit);
+  stroke.last = point;
+  keyboardCursor = point;
+  drawGrid();
+};
+pixelCanvas.onpointerup = finishStroke;
+pixelCanvas.onpointercancel = finishStroke;
+pixelCanvas.onlostpointercapture = finishStroke;
+pixelCanvas.onfocus = drawGrid;
+pixelCanvas.onblur = drawGrid;
+pixelCanvas.onkeydown = event => {
+  if (!editor || pixelCanvas.hidden) return;
+  const moves = {ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1]};
+  const move = moves[event.key];
+  if (move) {
+    event.preventDefault();
+    keyboardCursor.x += move[0];
+    keyboardCursor.y += move[1];
+    drawGrid();
+  } else if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    const {layer} = editor;
+    const before = layer.get(selectedGlyph);
+    const edit = workingEdit(before);
+    if (!editPixel(edit, keyboardCursor.x, keyboardCursor.y, selectedGlyph)) return;
+    recordEdit(selectedGlyph, before, layer);
+    applyEdit(layer, selectedGlyph, edit);
+    markChanged();
+    scheduleBuild();
+  }
+};
+localize();
+restoreBrowserProject();
+</script>
+</body>
+</html>
