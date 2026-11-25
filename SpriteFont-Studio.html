@@ -765,7 +765,8 @@ function build() {
     defaults.set(' ', automatic);
     if (config.proportional || advances.has(' ')) widths.set(' ', Math.min(width, advances.get(' ') ?? automatic));
   }
-  layout = {indices, widths, defaults, visibleWidths, width, height, columns};
+  const sampleZoom = art.width <= 24 && art.height <= 24 ? 2 : 1;
+  layout = {indices, widths, defaults, visibleWidths, width, height, columns, sampleZoom};
   byId('atlasMeta').textContent = `${atlasWidth} × ${atlasHeight} px`;
   byId('outWidth').value = width;
   byId('outHeight').value = height;
@@ -798,8 +799,7 @@ function renderSample() {
     sampleCanvas.style.removeProperty('height');
     return;
   }
-  const {width, height, columns, indices, widths} = layout;
-  const zoom = width <= 24 && height <= 24 ? 2 : 1;
+  const {width, height, columns, indices, widths, sampleZoom: zoom} = layout;
   const available = Math.max(width, Math.floor((byId('sampleArea').clientWidth - 24) / zoom));
   const cells = [];
   let x = 0;
